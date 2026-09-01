@@ -49,14 +49,15 @@ O projeto contribui diretamente para as metas da ONU ao:
 
 ### 1. Expo SDK `57.x` — Plataforma de Desenvolvimento Mobile
 
-**O que é:** Framework e conjunto de ferramentas para construir, testar e rodar aplicações React Native de forma universal.
+**O que é:** Ecossistema e conjunto de ferramentas para criar, testar e publicar aplicações React Native universais (Android, iOS e Web).
 
 **Por que foi escolhido:**
-A adoção do Expo SDK 57 permite a execução **instantânea no smartphone físico** por meio do aplicativo **Expo Go**, eliminando a necessidade de configurar Android Studio, Xcode ou SDKs nativos pesados durante a fase de desenvolvimento e avaliação. Além disso, o Expo abstrai a gestão de permissões nativas de câmera e ciclo de vida do app.
+A adoção do Expo SDK 57 traz **agilidade máxima no desenvolvimento** e elimina a barreira de dependências nativas complexas (Android Studio / Xcode / Gradle). Através do aplicativo gratuito **Expo Go**, qualquer membro da equipe ou avaliador pode executar o projeto **diretamente em seu próprio celular físico** em segundos apenas escaneando um QR Code, sem necessidade de compilações nativas pesadas.
 
 **Como funciona no projeto:**
 - O servidor de desenvolvimento Metro é iniciado com `npx expo start`
-- Gera um QR Code que conecta o app **Expo Go** (Android/iOS) diretamente ao computador via Wi-Fi ou Tunnel (ngrok)
+- Gera um QR Code que conecta o app **Expo Go** (Android/iOS) diretamente à máquina de desenvolvimento
+- Suporta modo `--tunnel` via ngrok para conectar o smartphone mesmo em redes Wi-Fi diferentes ou conexões de dados móveis
 - Integra o `expo-camera` para captura de vídeo e permissões de hardware no Android e iOS
 
 ---
@@ -68,7 +69,7 @@ A adoção do Expo SDK 57 permite a execução **instantânea no smartphone fís
 **Por que foi escolhido:**
 React Native foi escolhido pela sua capacidade de entregar **performance nativa** com uma única base de código. Diferente de soluções híbridas como Ionic (que usam WebView), o React Native renderiza componentes nativos reais — essencial para uma aplicação de câmera e RA onde a performance de frames por segundo é crítica. A versão 0.76 introduziu a nova **Hermes Engine** por padrão, reduzindo o tempo de inicialização em ~40%.
 
-**Como funciona no projeto:** É o runtime que executa toda a lógica JavaScript e comunica com os módulos nativos de câmera (`expo-camera`) e UI.
+**Como funciona no projeto:** É o runtime que executa toda a lógica JavaScript e comunica com os módulos nativos do Expo e de plataforma.
 
 ---
 
@@ -126,12 +127,12 @@ Animações executadas na JS thread sofrem de jank (travamentos) quando a thread
 
 ### 7. Expo Camera (`expo-camera`) — Captura e Permissões de Câmera
 
-**O que é:** Módulo de câmera oficial do ecossistema Expo para React Native.
+**O que é:** Biblioteca de câmera nativa oficial do Expo com suporte a captura em tempo real e controle de permissões.
 
 **Por que foi escolhido:**
-Fornece acesso de alta performance à câmera do dispositivo e gerenciamento de permissões multiplataforma (Android/iOS) compatível com o **Expo Go**.
+Substituiu a API nativa antiga por um fluxo universal compatível com **Expo Go**, Android e iOS sem requerer compilação Gradle manual.
 
-**Como funciona no projeto:** O `CameraService.ts` abstrai toda a lógica de câmera em uma camada de serviço isolada, solicitando permissões via `Camera.requestCameraPermissionsAsync()` e simulando a detecção de marcadores AR em ambiente de testes.
+**Como funciona no projeto:** O `CameraService.ts` abstrai toda a lógica de câmera em uma camada de serviço isolada, solicitando permissões via `Camera.requestCameraPermissionsAsync()` e simulando a detecção de marcadores AR em ambiente de desenvolvimento.
 
 ---
 
@@ -154,7 +155,7 @@ Necessário para **persistir a preferência de tema** do usuário entre sessões
 ```text
 AppTheme (interface)
 ├── darkTheme (objeto)    → fundo #0A0E1A, acento ciano #22D3EE
-└── lightTheme (objeto)   → fundo #F0F4FF, acento azul #2563EB
+└── lightTheme (objeto)   → fundo #F0F4FF, acento azul #0891B2
 ```
 
 **Por que foi projetado assim:**
@@ -193,7 +194,7 @@ Valores fixos em React Native são em "density-independent pixels" (dp), mas a p
 ar-lab-react-native/
 │
 ├── App.tsx                                 # Raiz: ThemeProvider + NavigationContainer
-├── index.js                                # Registro do componente raiz (registerRootComponent)
+├── index.js                                # Registro do componente (registerRootComponent)
 ├── app.json                                # Configurações do Expo (permissões de câmera, ícones, plugins)
 ├── babel.config.js                         # Presets Expo + aliases de import + plugin Reanimated
 │
@@ -228,7 +229,7 @@ ar-lab-react-native/
     │   │   ├── screens/
     │   │   │   └── ARViewerScreen.tsx      # Tela principal de RA (Container)
     │   │   ├── services/
-    │   │   │   └── CameraService.ts        # Permissões Android/iOS via expo-camera + marcadores
+    │   │   │   └── CameraService.ts        # Permissões Android/iOS + detecção de marcadores
     │   │   └── store/
     │   │       └── arScannerStore.ts       # Estado global Zustand da sessão AR
     │   │
@@ -343,7 +344,7 @@ sequenceDiagram
 git clone https://github.com/DJmesh/ar-lab-react-native.git
 cd ar-lab-react-native
 
-# 2. Instale as dependências
+# 2. Instale as dependências JavaScript
 npm install
 
 # 3. Inicie o servidor do Expo
@@ -433,6 +434,7 @@ Distribuído sob a licença **MIT**. Veja [`LICENSE`](./LICENSE) para mais infor
 - **Prof. Dr. Ohata** — Orientação, definição dos requisitos e base do projeto
 - **Meta / Facebook Open Source** — React Native framework
 - **Expo Team** — Expo SDK & Expo Go
+- **Comunidade ViroMedia** — @viro-community/react-viro
 - **ONU / UNDP** — Referência de impacto social (ODS 4)
 
 ---
