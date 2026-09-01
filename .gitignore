@@ -40,3 +40,7 @@ coverage/
 # Temporários
 *.log
 *.tmp
+
+# Expo
+.expo/
+
