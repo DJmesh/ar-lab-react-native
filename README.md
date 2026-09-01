@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Expo](https://img.shields.io/badge/Expo-SDK_57-000000?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev)
+[![Expo](https://img.shields.io/badge/Expo-SDK_54-000000?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev)
 [![React Native](https://img.shields.io/badge/React_Native-0.76-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://reactnative.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![Zustand](https://img.shields.io/badge/Zustand-5.x-FF8C00?style=for-the-badge)](https://zustand-demo.pmnd.rs)
@@ -47,12 +47,12 @@ O projeto contribui diretamente para as metas da ONU ao:
 
 ## 🛠️ Tecnologias Utilizadas — Justificativas Detalhadas
 
-### 1. Expo SDK `57.x` — Plataforma de Desenvolvimento Mobile
+### 1. Expo SDK `54.x` — Plataforma de Desenvolvimento Mobile
 
 **O que é:** Ecossistema e conjunto de ferramentas para criar, testar e publicar aplicações React Native universais (Android, iOS e Web).
 
 **Por que foi escolhido:**
-A adoção do Expo SDK 57 traz **agilidade máxima no desenvolvimento** e elimina a barreira de dependências nativas complexas (Android Studio / Xcode / Gradle). Através do aplicativo gratuito **Expo Go**, qualquer membro da equipe ou avaliador pode executar o projeto **diretamente em seu próprio celular físico** em segundos apenas escaneando um QR Code, sem necessidade de compilações nativas pesadas.
+A adoção do Expo SDK 54 traz **agilidade máxima no desenvolvimento** e elimina a barreira de dependências nativas complexas (Android Studio / Xcode / Gradle). Através do aplicativo gratuito **Expo Go**, qualquer membro da equipe ou avaliador pode executar o projeto **diretamente em seu próprio celular físico** em segundos apenas escaneando um QR Code, sem necessidade de compilações nativas pesadas.
 
 **Como funciona no projeto:**
 - O servidor de desenvolvimento Metro é iniciado com `npx expo start`
