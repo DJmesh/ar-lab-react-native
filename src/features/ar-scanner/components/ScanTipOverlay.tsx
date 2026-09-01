@@ -19,7 +19,7 @@ const TIPS = [
 ] as const;
 
 export const ScanTipOverlay: React.FC<ScanTipOverlayProps> = ({ onDismiss }) => {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const fadeAnim   = useRef(new Animated.Value(0)).current;
   const bounceAnim = useRef(new Animated.Value(0)).current;
 
@@ -42,7 +42,7 @@ export const ScanTipOverlay: React.FC<ScanTipOverlayProps> = ({ onDismiss }) => 
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-      <View style={[styles.backdrop, { backgroundColor: theme.isDark ? 'rgba(10,14,26,0.90)' : 'rgba(240,244,255,0.92)' }]} />
+      <View style={[styles.backdrop, { backgroundColor: isDark ? 'rgba(10,14,26,0.90)' : 'rgba(240,244,255,0.92)' }]} />
       <View
         style={[
           styles.content,
