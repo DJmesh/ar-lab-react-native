@@ -1,4 +1,53 @@
 {
-  "name": "ARLabMobile",
-  "displayName": "AR Lab"
+  "expo": {
+    "name": "AR Lab",
+    "slug": "ar-lab-react-native",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A0E1A"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.arlabmobile.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "O AR Lab usa a câmera para detectar marcadores e exibir modelos 3D educacionais em Realidade Aumentada."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0A0E1A"
+      },
+      "package": "com.arlabmobile.app",
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "O AR Lab usa a câmera para detectar marcadores e exibir modelos 3D educacionais em Realidade Aumentada."
+        }
+      ],
+      "expo-font",
+      [
+        "react-native-reanimated"
+      ]
+    ],
+    "extra": {
+      "arSimulationMode": true
+    }
+  }
 }
