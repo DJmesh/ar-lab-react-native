@@ -2,6 +2,7 @@
 
 <div align="center">
 
+[![Expo](https://img.shields.io/badge/Expo-SDK_57-000000?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev)
 [![React Native](https://img.shields.io/badge/React_Native-0.76-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://reactnative.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![Zustand](https://img.shields.io/badge/Zustand-5.x-FF8C00?style=for-the-badge)](https://zustand-demo.pmnd.rs)
@@ -12,6 +13,7 @@
 <br/>
 
 > **Aplicativo móvel em React Native com Realidade Aumentada** para apoio didático em laboratórios acadêmicos.
+> Suporte a **Expo Go** para execução instantânea no dispositivo físico.
 > Alinhado ao **ODS 4 da ONU — Educação de Qualidade**.
 
 </div>
@@ -45,148 +47,105 @@ O projeto contribui diretamente para as metas da ONU ao:
 
 ## 🛠️ Tecnologias Utilizadas — Justificativas Detalhadas
 
-### 1. React Native `0.76.x` — Framework Mobile Principal
+### 1. Expo SDK `57.x` — Plataforma de Desenvolvimento Mobile
+
+**O que é:** Ecossistema e conjunto de ferramentas para criar, testar e publicar aplicações React Native universais (Android, iOS e Web).
+
+**Por que foi escolhido:**
+A adoção do Expo SDK 57 traz **agilidade máxima no desenvolvimento** e elimina a barreira de dependências nativas complexas (Android Studio / Xcode / Gradle). Através do aplicativo gratuito **Expo Go**, qualquer membro da equipe ou avaliador pode executar o projeto **diretamente em seu próprio celular físico** em segundos apenas escaneando um QR Code, sem necessidade de compilações nativas pesadas.
+
+**Como funciona no projeto:**
+- O servidor de desenvolvimento Metro é iniciado com `npx expo start`
+- Gera um QR Code que conecta o app **Expo Go** (Android/iOS) diretamente à máquina de desenvolvimento
+- Suporta modo `--tunnel` via ngrok para conectar o smartphone mesmo em redes Wi-Fi diferentes ou conexões de dados móveis
+- Integra o `expo-camera` para captura de vídeo e permissões de hardware no Android e iOS
+
+---
+
+### 2. React Native `0.76.x` — Framework Mobile Principal
 
 **O que é:** Framework de desenvolvimento mobile da Meta que permite escrever código JavaScript/TypeScript que compila para componentes nativos de iOS e Android.
 
 **Por que foi escolhido:**
-React Native foi escolhido pela sua capacidade de entregar **performance nativa** com uma única base de código. Diferente de soluções híbridas como Ionic (que usam WebView), o React Native renderiza componentes nativos reais — essencial para uma aplicação de câmera e RA onde a performance de frames por segundo é crítica. A versão 0.76 introduziu a nova **Hermes Engine** por padrão, reduzindo o tempo de inicialização em ~40%.
+React Native foi escolhido pela sua capacidade de entregar **performance nativa** com uma única base de código. Diferente de soluções híbridas baseadas em WebView, o React Native renderiza componentes nativos reais — essencial para uma aplicação de câmera e RA onde a taxa de quadros (FPS) é crítica. A versão 0.76 utiliza a **Hermes Engine** por padrão, otimizando o consumo de memória e a velocidade de execução.
 
-**Como funciona no projeto:** É o runtime que executa toda a lógica JavaScript e comunica com os módulos nativos de câmera (`react-native-vision-camera`) e AR (`@viro-community/react-viro`).
+**Como funciona no projeto:** É o runtime que executa toda a lógica JavaScript, gerencia o ciclo de vida dos componentes e se comunica com os módulos nativos do Expo.
 
 ---
 
-### 2. TypeScript `5.6.x` — Linguagem de Tipagem Estática
+### 3. TypeScript `5.6.x` — Linguagem de Tipagem Estática
 
-**O que é:** Superset do JavaScript que adiciona tipagem estática opcional, interfaces, enums e outras funcionalidades de linguagens orientadas a objetos.
+**O que é:** Superset do JavaScript que adiciona tipagem estática opcional, interfaces e enums.
 
 **Por que foi escolhido:**
-Em um projeto com múltiplos desenvolvedores e camadas de Clean Architecture, o TypeScript é indispensável. Ele captura erros de tipo em tempo de compilação (antes do app rodar), documenta automaticamente contratos entre módulos e habilita o IntelliSense completo nos editores. No projeto, toda a camada de **Domain** usa TypeScript puro com interfaces como contratos — garantindo que qualquer implementação de repositório siga o contrato definido.
-
-**Como funciona no projeto:** Todos os arquivos `.ts`/`.tsx` são transpilados pelo Metro Bundler via Babel antes de serem executados. Os caminhos de import são resolvidos via `baseUrl` e `paths` no `tsconfig.json`, permitindo imports como `@shared/components/Badge` ao invés de caminhos relativos complexos.
+Em um projeto modular com Clean Architecture, o TypeScript captura erros de tipo em tempo de compilação, documenta automaticamente os contratos da camada de **Domain** e habilita autocompletar completo. Toda a regra de negócio é 100% tipada.
 
 ---
 
-### 3. React Navigation `6.x` — Sistema de Roteamento
+### 4. React Navigation `6.x` — Sistema de Roteamento Type-Safe
 
-**O que é:** Biblioteca de navegação mais utilizada no ecossistema React Native, com suporte a Stack, Tab, Drawer e Modal navigators.
+**O que é:** Biblioteca de navegação nativa para React Native.
 
 **Por que foi escolhido:**
-O React Navigation foi escolhido por sua **maturidade**, tipagem TypeScript nativa (via `RootStackParamList`) e integração seamless com gestos nativos (`react-native-gesture-handler`). A tipagem das rotas garante que toda navegação seja **type-safe** — se uma tela requerer um parâmetro `labId`, o TypeScript garante que o código que navega para ela obrigatoriamente passe esse parâmetro.
-
-**Como funciona no projeto:**
-- `RootNavigator.tsx`: Define o Stack Navigator com 3 telas (`Home`, `LabDetail`, `ARViewer`)
-- `types.ts`: Define `RootStackParamList` tipando os parâmetros de cada rota
-- Transição `fade` é usada para o `ARViewer` para uma experiência mais imersiva
-- O `NavigationContainer` recebe o tema dinâmico via `buildNavigationTheme()` para que a barra de navegação também mude com o dark/light mode
+Oferece transições nativas fluidas (`slide_from_right`, `fade`), suporte completo a gestos e navegação estritamente tipada via `RootStackParamList`. O container de navegação se integra ao `ThemeContext` dinâmico do projeto.
 
 ---
 
-### 4. Zustand `5.x` — Gerenciamento de Estado Global
+### 5. Zustand `5.x` — Gerenciamento de Estado Global
 
-**O que é:** Biblioteca minimalista de gerenciamento de estado para React, baseada em hooks.
+**O que é:** Biblioteca de gerenciamento de estado previsível e minimalista baseada em hooks.
 
 **Por que foi escolhido:**
-Para o estado da sessão de Realidade Aumentada (`ARStatus`, modelo carregado, histórico de scans), precisávamos de um state manager que fosse **simples de escrever, performático e sem boilerplate excessivo**. O Zustand foi escolhido sobre Redux Toolkit porque:
-1. Não requer Actions, Reducers e Dispatchers
-2. Funciona diretamente com hooks (`useARScannerStore`)
-3. Atualiza seletivamente apenas os componentes que consomem o estado alterado
-4. É 5x menor que Redux em tamanho de bundle
-
-**Como funciona no projeto:** O `arScannerStore.ts` define o estado completo da sessão AR — status (`initializing | scanning | model_ready | error`), modelo atual, histórico de varreduras. O `useARScanner` hook lê e escreve nesse store. Os componentes de UI consomem apenas as fatias de estado que precisam.
+Gerencia o estado da sessão de RA (`arScannerStore.ts`) sem o boilerplate verboso do Redux. Permite que os componentes assinem apenas as fatias de estado relevantes (`status`, `currentModel`, `scanTipVisible`), garantindo alta performance de renderização.
 
 ---
 
-### 5. React Native Reanimated `3.x` — Animações de Alta Performance
+### 6. React Native Reanimated `3.x` — Animações em Thread Nativa
 
-**O que é:** Biblioteca de animações para React Native que executa animações na **thread nativa** (UI thread), ao invés da thread JavaScript.
+**O que é:** Biblioteca de animações que executa diretamente na UI thread do dispositivo.
 
 **Por que foi escolhido:**
-Animações executadas na JS thread sofrem de jank (travamentos) quando a thread está ocupada processando lógica de negócio ou requisições. O Reanimated move as animações para a thread nativa, garantindo **60fps constantes** mesmo durante operações intensas. É usado implicitamente pelo React Navigation para transições de telas.
-
-**Como funciona no projeto:** O plugin `react-native-reanimated/plugin` no `babel.config.js` transforma automaticamente funções marcadas com `'worklet'` para executar na UI thread.
+Garante animações a **60 FPS cravados** (linha de varredura do scanner, pulsação de confirmação visual, cards deslizantes) sem travar a thread de JavaScript.
 
 ---
 
-### 6. React Native Vision Camera `4.x` — Câmera Nativa
+### 7. Expo Camera (`expo-camera`) — Captura e Permissões de Câmera
 
-**O que é:** Biblioteca de câmera de alta performance para React Native com acesso a frames em tempo real.
+**O que é:** Módulo nativo do Expo para acesso à câmera do dispositivo.
 
 **Por que foi escolhido:**
-O `react-native-vision-camera` é a biblioteca de câmera mais moderna do ecossistema React Native. Diferente do descontinuado `react-native-camera`, ela:
-- Fornece acesso a **frames de vídeo brutos** via Frame Processors (Worklets)
-- Permite integração com **ML Kit** e outros modelos de machine learning nativamente
-- Suporta controle total de exposição, foco, ISO para ambientes de laboratório
-- É totalmente compatível com a nova Arquitetura React Native (Fabric + JSI)
-
-**Como funciona no projeto:** O `CameraService.ts` abstrai toda a lógica de câmera em uma camada de serviço isolada, seguindo o princípio de separação de responsabilidades. Em desenvolvimento, a detecção de marcadores é simulada; em produção, seria substituída por Frame Processors com ML Kit.
+Substituiu a API antiga `PermissionsAndroid` por um fluxo universal compatível com **Expo Go**, Android e iOS. O `CameraService.ts` encapsula a solicitação de permissões e a simulação de detecção de marcadores AR.
 
 ---
 
-### 7. @viro-community/react-viro — Realidade Aumentada
+### 8. @react-native-async-storage/async-storage — Persistência Local de Tema
 
-**O que é:** Biblioteca de Realidade Aumentada para React Native, suportando ARKit (iOS) e ARCore (Android).
+**O que é:** Banco de chave-valor assíncrono para armazenamento local.
 
 **Por que foi escolhido:**
-O ViroReact é a solução de RA mais madura disponível para React Native, com suporte a:
-- Detecção de superfícies e planos
-- Rastreamento de **marcadores de imagem** (Image Tracking)
-- Renderização de modelos 3D nos formatos `.gltf`, `.glb` e `.obj`
-- Efeitos de luz, sombra e material PBR (Physically Based Rendering)
-
-**Como funciona no projeto:** A tela `ARViewerScreen` exibe o viewfinder da câmera com o `ScanFrame` animado sobreposto. Ao detectar um marcador (atualmente simulado via `CameraService.simulateMarkerDetection()`), o modelo 3D correspondente é carregado via `ResolveARModelUseCase` e renderizado pelo ViroReact sobre a superfície detectada.
+Persiste a escolha de tema do usuário (`dark` ou `light`) entre sessões no dispositivo, lendo a preferência no arranque do aplicativo.
 
 ---
 
-### 8. @react-native-async-storage/async-storage — Persistência Local
+### 9. Sistema de Tema Dual (Dark/Light Mode) — Design System Próprio
 
-**O que é:** API de armazenamento assíncrono de chave-valor para React Native (equivalente ao `localStorage` do navegador, mas assíncrono).
+**O que é:** Tokens de cores, tipografia, elevação e gradientes com suporte a dois temas distintos.
 
-**Por que foi escolhido:**
-Necessário para **persistir a preferência de tema** do usuário entre sessões. Sem isso, o app sempre iniciaria no tema padrão (dark), ignorando a escolha anterior do usuário. O AsyncStorage é a solução oficial recomendada para dados simples que não requerem um banco de dados completo.
-
-**Como funciona no projeto:** O `ThemeContext.tsx` salva a preferência em `@arlab:theme_mode` via `AsyncStorage.setItem()` sempre que o usuário alterna o tema. Na inicialização, lê esse valor com `AsyncStorage.getItem()` e aplica o tema salvo, evitando o "flash" de tema incorreto.
-
----
-
-### 9. Sistema de Tema Dual (Dark/Light Mode) — Design Próprio
-
-**O que é:** Sistema de tokens de design implementado do zero com suporte completo a dois temas.
-
-**Arquitetura:**
-```
-AppTheme (interface)
-├── darkTheme (objeto)    → fundo #0A0E1A, acento ciano #22D3EE
-└── lightTheme (objeto)   → fundo #F0F4FF, acento azul #0891B2
-```
-
-**Por que foi projetado assim:**
-Ao invés de usar `Appearance.getColorScheme()` em cada componente (abordagem frágil e propensa a flickering), centralizamos toda a lógica no `ThemeProvider`. Cada componente recebe o tema via `useTheme()` e usa **apenas** as cores do objeto de tema — jamais cores hardcoded. Isso garante que qualquer mudança no tema redesenhe corretamente **100% da UI** sem exceções.
-
-**Como funciona:**
-1. `ThemeProvider` detecta a preferência salva (AsyncStorage) ou o sistema operacional
-2. Expõe `theme`, `isDark`, `toggleTheme` e `themeProgress` (Animated.Value 0→1)
-3. `ThemeToggle` anima a transição visualmente com `Animated.timing` interpolando cores
-4. `buildNavigationTheme()` converte o `AppTheme` para o formato do React Navigation
+- **Dark Mode (`#0A0E1A`):** Otimizado para ambiente de laboratório com baixa luminosidade e destaque neon `#22D3EE`.
+- **Light Mode (`#F0F4FF`):** Tema claro e limpo para ambientes externos e leitura de roteiros acadêmicos.
+- Alternância em runtime via componente `ThemeToggle` com transição suave interpolada por `Animated.Value`.
 
 ---
 
-### 10. Sistema de Responsividade — Design Próprio (`responsive.ts`)
+### 10. Sistema de Responsividade (`responsive.ts`)
 
-**O que é:** Utilitários de escala baseados na resolução de referência iPhone 14 (375×812).
+**O que é:** Utilitários de escala baseados no iPhone 14 (375×812 dp) como resolução de referência.
 
-**Funções disponíveis:**
-
-| Função | Uso | Exemplo |
-|---|---|---|
-| `rw(n)` | Escala horizontal (larguras, padding H) | `rw(16)` → ~17px em iPhone 15 Pro |
-| `rh(n)` | Escala vertical (alturas, padding V) | `rh(24)` → ~28px em iPhone 15 Pro |
-| `rs(n)` | Escala moderada (fontes, ícones) | `rs(15)` → valor balanceado |
-| `rf(n)` | Escala de fonte com PixelRatio | `rf(15)` → nitidez máxima |
-| `responsive({})` | Breakpoints por tipo de tela | Tablet, large, small, default |
-
-**Por que foi projetado assim:**
-Valores fixos em React Native são em "density-independent pixels" (dp), mas a proporção ainda varia muito entre telas de 4" (320dp) e 6.7" (428dp). Ao escalar todos os valores usando a proporção `screenWidth / 375`, garantimos que o layout preserve suas proporções visuais em qualquer dispositivo — de um Galaxy A03 (6.5") a um iPad Pro (1024dp).
+- `rw(n)` — Escala horizontal
+- `rh(n)` — Escala vertical
+- `rs(n)` — Escala moderada (fontes e ícones)
+- `rf(n)` — Fontes nítidas via PixelRatio
+- Adaptável a smartphones pequenos, grandes e tablets.
 
 ---
 
@@ -196,252 +155,211 @@ Valores fixos em React Native são em "density-independent pixels" (dp), mas a p
 ar-lab-react-native/
 │
 ├── App.tsx                                 # Raiz: ThemeProvider + NavigationContainer
-├── index.js                                # Registro do componente
+├── index.js                                # Registro do componente raiz (registerRootComponent)
+├── app.json                                # Configurações do Expo (permissões de câmera, ícones, plugins)
+├── babel.config.js                         # Presets Expo + aliases de import + plugin Reanimated
 │
 └── src/
+    ├── domain/                             # 🏛️ CAMADA DE DOMÍNIO (Pure TS, Zero dependências)
+    │   ├── entities/                       # Laboratory, LaboratoryStep, ARModel, ARSession
+    │   ├── repositories/                   # Interfaces (ILaboratoryRepository, IARModelRepository)
+    │   └── usecases/                       # GetLaboratoriesUseCase, ResolveARModelUseCase
     │
-    ├── domain/                             # 🏛️ CAMADA DE DOMÍNIO
-    │   │                                   # Regras de negócio puras. Zero dependências externas.
-    │   ├── entities/
-    │   │   ├── Laboratory.ts               # Laboratory, LaboratoryStep, UserProgress
-    │   │   └── ARSession.ts                # ARModel, ARSession, ARScanResult, ARStatus
-    │   ├── repositories/
-    │   │   └── ILaboratoryRepository.ts    # Contratos: ILabRepository, IARModelRepository
-    │   └── usecases/
-    │       └── LaboratoryUseCases.ts       # GetLabs, ResolveARModel, CompleteStep
+    ├── data/                               # 💾 CAMADA DE DADOS (Implementação dos Repositórios)
+    │   ├── datasources/                    # MockDataSource (Laboratórios e Modelos 3D)
+    │   └── repositories/                   # LaboratoryRepositoryImpl, ARModelRepositoryImpl
     │
-    ├── data/                               # 💾 CAMADA DE DADOS
-    │   │                                   # Implementa os contratos do Domain.
-    │   ├── datasources/
-    │   │   └── MockDataSource.ts           # 4 laboratórios + 3 modelos 3D (dados mock)
-    │   └── repositories/
-    │       └── LaboratoryRepositoryImpl.ts # Implementações concretas + ARModelRepositoryImpl
-    │
-    ├── features/                           # 🧩 MÓDULOS (Feature-First)
+    ├── features/                           # 🧩 MÓDULOS (Feature-First Architecture)
+    │   ├── ar-scanner/                     # Módulo de Realidade Aumentada
+    │   │   ├── components/                 # ScanFrame, ModelInfoCard, ScanTipOverlay
+    │   │   ├── hooks/                      # useARScanner (Hook Container de RA)
+    │   │   ├── screens/                    # ARViewerScreen (Tela principal de RA)
+    │   │   ├── services/                   # CameraService (expo-camera integration)
+    │   │   └── store/                      # arScannerStore (Estado Zustand)
     │   │
-    │   ├── ar-scanner/                     # Feature: Realidade Aumentada
-    │   │   ├── components/
-    │   │   │   ├── ScanFrame.tsx           # Frame animado com scan line e cantos
-    │   │   │   ├── ModelInfoCard.tsx       # Card deslizante com info educacional
-    │   │   │   └── ScanTipOverlay.tsx      # Instrução inicial animada (first-time UX)
-    │   │   ├── hooks/
-    │   │   │   └── useARScanner.ts         # Orquestra câmera, permissões, detecção, modelo
-    │   │   ├── screens/
-    │   │   │   └── ARViewerScreen.tsx      # Tela principal de RA (Container)
-    │   │   ├── services/
-    │   │   │   └── CameraService.ts        # Permissões Android/iOS + detecção de marcadores
-    │   │   └── store/
-    │   │       └── arScannerStore.ts       # Estado global Zustand da sessão AR
-    │   │
-    │   └── laboratory/                     # Feature: Laboratórios
-    │       ├── components/
-    │       │   └── LabCard.tsx             # Card com RA button, badges e meta info
-    │       └── screens/
-    │           ├── HomeScreen.tsx          # Lista + filtros de categoria + ThemeToggle
-    │           └── LabDetailScreen.tsx     # Etapas, roteiro, botão RA + ThemeToggle
+    │   └── laboratory/                     # Módulo de Roteiros e Laboratórios
+    │       ├── components/                 # LabCard
+    │       └── screens/                    # HomeScreen, LabDetailScreen
     │
-    ├── navigation/                         # 🗺️ NAVEGAÇÃO
-    │   ├── RootNavigator.tsx               # Stack Navigator (Home → Detail → AR)
-    │   └── types.ts                        # RootStackParamList (type-safe routing)
+    ├── navigation/                         # 🗺️ NAVEGAÇÃO TYPE-SAFE
+    │   ├── RootNavigator.tsx               # Stack Navigator (Home → Detail → ARViewer)
+    │   └── types.ts                        # RootStackParamList (Tipagem estrita das rotas)
     │
-    └── shared/                             # 🔧 RECURSOS COMPARTILHADOS
-        ├── components/
-        │   ├── Badge.tsx                   # CategoryBadge + DifficultyBadge (theme-aware)
-        │   ├── ErrorState.tsx              # Estado de erro com retry (theme-aware)
-        │   ├── LoadingOverlay.tsx          # Loading animado padrão + variante AR
-        │   └── ThemeToggle.tsx             # Switch animado dark ↔ light
-        ├── contexts/
-        │   └── ThemeContext.tsx            # Provider + useTheme() + persistência
-        ├── theme/
-        │   ├── tokens.ts                   # darkTheme + lightTheme (tokens completos)
-        │   └── navigationTheme.ts          # buildNavigationTheme() para React Navigation
-        └── utils/
-            └── responsive.ts              # rw(), rh(), rs(), rf(), isTablet, responsive()
+    └── shared/                             # 🔧 COMPONENTES E UTILITÁRIOS REUTILIZÁVEIS
+        ├── components/                     # Badge, ErrorState, LoadingOverlay, ThemeToggle
+        ├── contexts/                       # ThemeContext (Gestão de tema + AsyncStorage)
+        ├── theme/                          # tokens.ts (darkTheme/lightTheme), navigationTheme.ts
+        └── utils/                          # responsive.ts (rw, rh, rs, rf, breakpoints)
 ```
 
 ---
 
-## 🔮 Como Funciona o Sistema de RA
+## 🔮 Como Funciona o Fluxo de RA
 
 ```mermaid
 sequenceDiagram
     participant U as Usuário
     participant UI as ARViewerScreen
     participant H as useARScanner (Hook)
-    participant CS as CameraService
+    participant CS as CameraService (Expo)
     participant UC as ResolveARModelUseCase
     participant R as ARModelRepository
 
-    U->>UI: Abre tela de RA
+    U->>UI: Abre a tela de RA
     UI->>H: inicializa (labId)
     H->>CS: requestCameraPermission()
     CS-->>H: 'granted'
-    H->>H: initSession() → status: 'scanning'
-    UI->>U: Mostra ScanFrame animado
+    H->>H: status: 'scanning'
+    UI->>U: Exibe viewfinder da câmera + ScanFrame animado
 
-    U->>UI: Aponta câmera para marcador
+    U->>UI: Aponta a câmera para o marcador impresso
     H->>CS: simulateMarkerDetection()
     CS-->>H: { markerId: 'marker-h2o', confidence: 0.92 }
     H->>H: status: 'model_loading'
 
     H->>UC: execute('marker-h2o')
     UC->>R: findByMarkerId('marker-h2o')
-    R-->>UC: ARModel { name: 'H₂O', filePath: '...' }
+    R-->>UC: ARModel { name: 'H₂O', type: 'molecule' }
     UC-->>H: ARModel
     H->>H: status: 'model_ready'
 
-    UI->>U: Exibe ModelInfoCard + modelo 3D sobreposto
+    UI->>U: Exibe confirmação visual + ModelInfoCard interativo
 ```
 
 ---
 
-## 🎨 Sistema de Design
+## 🎨 Sistema de Design & Cores
 
 ### Paleta de Cores — Modo Escuro (Laboratório)
 
-| Token | Valor | Uso |
+| Token | Hex | Aplicação |
 |---|---|---|
-| `bg.primary` | `#0A0E1A` | Fundo principal — azul petróleo escuro |
-| `bg.secondary` | `#111827` | Fundo de cartões e modais |
-| `brand.accent` | `#22D3EE` | Elementos de AR, bordas de scanner — ciano neon |
-| `brand.primary` | `#3B82F6` | Botões de ação primária — azul elétrico |
+| `bg.primary` | `#0A0E1A` | Fundo principal da aplicação |
+| `bg.secondary` | `#111827` | Cartões, modais e containers |
+| `brand.accent` | `#22D3EE` | Acento ciano neon (RA, scanner, destaques) |
+| `brand.primary` | `#3B82F6` | Botões e ações primárias |
 | `semantic.success` | `#10B981` | Confirmação de detecção de marcador |
-| `text.primary` | `#F9FAFB` | Texto principal |
 
 ### Paleta de Cores — Modo Claro (Acadêmico)
 
-| Token | Valor | Uso |
+| Token | Hex | Aplicação |
 |---|---|---|
-| `bg.primary` | `#F0F4FF` | Fundo lavanda suave |
-| `bg.secondary` | `#FFFFFF` | Fundo de cartões |
-| `brand.accent` | `#0891B2` | Elementos de AR — azul petróleo |
-| `brand.primary` | `#2563EB` | Botões de ação — azul universitário |
-| `text.primary` | `#0F172A` | Texto principal — quase preto |
-
-### Princípios de UX para Laboratório
-- **Dark mode como padrão** — ambientes de laboratório têm iluminação controlada
-- **Tap targets ≥ 44dp** — operação com luvas ou mãos úmidas
-- **Feedback háptico** — confirmação tátil ao detectar marcadores
-- **Microanimações** — linha de varredura, pulsação de glow, slide-up do card de info
-- **Persistência de tema** — preferência salva via AsyncStorage entre sessões
-- **useWindowDimensions** — layout se adapta a rotações de tela em tempo real
+| `bg.primary` | `#F0F4FF` | Fundo suave tom lavanda |
+| `bg.secondary` | `#FFFFFF` | Cartões e superfícies elevadas |
+| `brand.accent` | `#0891B2` | Acento azul petróleo para RA |
+| `brand.primary` | `#2563EB` | Ações principais e botões |
 
 ---
 
-## 🚀 Como Executar o Projeto
+## 📱 Como Executar o Projeto com o Expo Go
 
-### Pré-requisitos
+### 1. Pré-requisitos Básicos
 
-| Ferramenta | Versão mínima | Link |
+| Requisito | Descrição | Link |
 |---|---|---|
-| Node.js | 18 LTS | [nodejs.org](https://nodejs.org) |
-| JDK | 17 | [adoptium.net](https://adoptium.net) |
-| Android Studio | Hedgehog+ | [developer.android.com](https://developer.android.com/studio) |
-| Xcode *(macOS)* | 15+ | App Store |
-| CocoaPods *(iOS)* | 1.14+ | `gem install cocoapods` |
+| **Node.js** | Versão 18 LTS ou superior | [nodejs.org](https://nodejs.org) |
+| **Expo Go (App)** | Baixe no seu celular Android ou iOS | [Google Play](https://play.google.com/store/apps/details?id=host.exp.exponent) \| [App Store](https://apps.apple.com/app/expo-go/id982107779) |
+| **Rede** | Celular e computador na mesma rede Wi-Fi (ou usar modo `--tunnel`) | — |
 
-### Instalação e execução
+---
+
+### 2. Passo a Passo de Execução
+
+#### 📲 Opção A: Executar no Smartphone Físico via Expo Go (Recomendado)
 
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/SeuUsuario/ar-lab-react-native.git
+git clone https://github.com/DJmesh/ar-lab-react-native.git
 cd ar-lab-react-native
 
-# 2. Instale as dependências JavaScript
+# 2. Instale as dependências
 npm install
 
-# 3a. Android — rode no emulador ou dispositivo físico
-npx react-native run-android
-
-# 3b. iOS — instale pods e rode
-cd ios && pod install && cd ..
-npx react-native run-ios
-
-# 4. (Opcional) Inicie o Metro Bundler separadamente
-npm start
+# 3. Inicie o servidor do Expo
+npx expo start
 ```
 
-### Variáveis de ambiente (opcional)
+Após executar o comando acima:
+1. Um **QR Code** será exibido no terminal.
+2. Abra o aplicativo **Expo Go** no seu celular:
+   - **Android:** Toque em *"Scan QR Code"* dentro do app Expo Go e aponte para o terminal.
+   - **iOS:** Abra o app de **Câmera nativo do iPhone**, aponte para o QR Code e toque na notificação para abrir no Expo Go.
+
+---
+
+#### 🌐 Opção B: Executar via Tunnel (Caso esteja em redes Wi-Fi diferentes ou 4G/5G)
+
+Se o computador e o celular estiverem em redes Wi-Fi bloqueadas (redes universitárias) ou conexões diferentes, use o modo tunnel:
 
 ```bash
-# Crie .env na raiz do projeto
-AR_SIMULATION_MODE=true    # Simula detecção de marcadores (dev)
-API_BASE_URL=http://...    # URL da API de laboratórios (produção)
+npx expo start --tunnel
 ```
 
 ---
 
-## 🧪 Qualidade de Código
+#### 💻 Opção C: Executar em Emuladores Locais
 
 ```bash
-# Tipagem TypeScript
+# No Android Emulator (com Android Studio aberto)
+npx expo start --android
+
+# No iOS Simulator (macOS com Xcode)
+npx expo start --ios
+```
+
+---
+
+## 🧪 Verificação de Qualidade e Scripts
+
+```bash
+# Validação de Tipos TypeScript (sem emitir build)
 npm run type-check
 
-# Lint (ESLint + @typescript-eslint)
+# Análise Estática de Código (ESLint)
 npm run lint
 
-# Formatação (Prettier)
+# Formatação Automática de Código (Prettier)
 npm run format
 
-# Testes unitários (Jest)
+# Execução de Testes Unitários (Jest + Expo)
 npm test
 ```
 
 ---
 
-## 🏗️ Arquitetura — Clean Architecture + Feature-First
+## 🏗️ Arquitetura Clean + Feature-First
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
-│  PRESENTATION (Features + Shared)                               │
-│  Screens → Hooks → Stores → Components                          │
-│  [useTheme, ThemeToggle, responsive utilities]                  │
+│  PRESENTATION LAYER (Features: ar-scanner, laboratory)          │
+│  UI Components, Hooks Containers, Zustand Store, ThemeContext   │
 ├─────────────────────────────────────────────────────────────────┤
-│  DATA (Repositories Impl. + DataSources)                        │
-│  LaboratoryRepositoryImpl, ARModelRepositoryImpl                │
-│  MockDataSource → produção: API REST / Firebase                 │
+│  DATA LAYER (Repositories Implementation)                       │
+│  LaboratoryRepositoryImpl, ARModelRepositoryImpl, MockData      │
 ├─────────────────────────────────────────────────────────────────┤
-│  DOMAIN (Entities + Use Cases + Interfaces)                     │
-│  Puro TypeScript. Zero dependências externas.                   │
-│  ILaboratoryRepository, GetLaboratoriesUseCase                  │
+│  DOMAIN LAYER (Core Business Rules)                             │
+│  Entities (Laboratory, ARSession), Use Cases, Repository Interfaces│
 └─────────────────────────────────────────────────────────────────┘
 ```
-
-**Regra fundamental:** As setas de dependência apontam sempre para dentro (Domain ← Data ← Presentation). O Domain nunca conhece o React Native.
-
----
-
-## 📊 Modelos 3D Educacionais
-
-| ID | Modelo | Categoria | Marcador | Formato |
-|---|---|---|---|---|
-| `model-h2o` | Molécula de Água H₂O | Química | `marker-h2o` | `.glb` |
-| `model-dna` | DNA — Dupla Hélice | Biologia | `marker-dna` | `.glb` |
-| `model-cube` | Cubo — Sólido de Platão | Geometria | `marker-platonic` | `.glb` |
-
-> Todos os modelos são **gratuitos e de uso livre** (CC0/Creative Commons). Fontes recomendadas: [Sketchfab](https://sketchfab.com/features/free-3d-models), [poly.pizza](https://poly.pizza), [Khronos glTF Sample Assets](https://github.com/KhronosGroup/glTF-Sample-Assets).
 
 ---
 
 ## 📄 Licença
 
-Distribuído sob a licença **MIT**. Veja [`LICENSE`](./LICENSE) para mais informações.
+Distribuído sob a licença **MIT**. Veja [`LICENSE`](./LICENSE) para mais detalhes.
 
 ---
 
 ## 🙏 Agradecimentos
 
-- **Prof. Dr. Ohata** — Orientação, definição dos requisitos e base do projeto
-- **Meta / Facebook Open Source** — React Native framework
-- **Comunidade ViroMedia** — @viro-community/react-viro
-- **ONU / UNDP** — Referência de impacto social (ODS 4)
+- **Prof. Dr. Ohata** — Orientação técnica e pedagógica
+- **Expo & React Native Teams** — Ferramentas open-source excepcionais
+- **ONU (Nações Unidas)** — Inspiração nos Objetivos de Desenvolvimento Sustentável (ODS 4)
 
 ---
 
 <div align="center">
 
 Desenvolvido com ❤️ para a disciplina de **Computação Móvel** — UNIP 2026
-
-*"A educação é a arma mais poderosa que você pode usar para mudar o mundo."* — Nelson Mandela
 
 </div>
