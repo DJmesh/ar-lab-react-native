@@ -11,14 +11,20 @@ import type { LaboratoryCategory, DifficultyLevel } from '../../domain/entities/
 // ─── Mapeamentos ──────────────────────────────────────────────────────────────
 
 const CATEGORY_COLORS: Record<LaboratoryCategory, string> = {
-  chemistry:   '#10B981',
+  math:        '#3B82F6',
+  geography:   '#10B981',
+  portuguese:  '#EC4899',
+  chemistry:   '#8B5CF6',
   biology:     '#22C55E',
-  physics:     '#3B82F6',
-  electronics: '#F59E0B',
-  mechanics:   '#8B5CF6',
+  physics:     '#F59E0B',
+  electronics: '#6366F1',
+  mechanics:   '#64748B',
 };
 
 const CATEGORY_LABELS: Record<LaboratoryCategory, string> = {
+  math:        'Matemática',
+  geography:   'Geografia',
+  portuguese:  'Português',
   chemistry:   'Química',
   biology:     'Biologia',
   physics:     'Física',
