@@ -371,6 +371,23 @@ API_BASE_URL=http://...    # URL da API de laboratórios (produção)
 
 ---
 
+## 📦 Como Gerar o APK Instalável (.apk) via Expo EAS
+
+Para publicar ou gerar o arquivo de instalação **.apk** que roda em qualquer celular Android sem depender do Expo Go:
+
+### 1. Fazer Login no Expo EAS
+```bash
+npx eas-cli login
+```
+
+### 2. Gerar o APK na Nuvem do Expo
+```bash
+npx eas-cli build --platform android --profile preview
+```
+> O serviço EAS Build do Expo compilará o projeto e gerará um link para download direto do arquivo `.apk` de instalação.
+
+---
+
 ## 🧪 Qualidade de Código
 
 ```bash
