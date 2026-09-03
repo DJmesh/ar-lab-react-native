@@ -41,7 +41,8 @@
         {
           "cameraPermission": "O AR Lab usa a câmera para detectar marcadores e exibir modelos 3D educacionais em Realidade Aumentada."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "extra": {
       "arSimulationMode": true,
