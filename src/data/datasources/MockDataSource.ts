@@ -13,6 +13,45 @@ import type { ARModel } from '../../domain/entities/ARSession';
 
 export const MOCK_LABORATORIES: Laboratory[] = [
   {
+    id: 'lab-kids-math',
+    name: 'Contando Frutas Mágicas (1, 2, 3)',
+    description:
+      'Aponte a câmera para a mesa e conte as maçãs 3D flutuantes! Aprenda a somar de forma divertida estilo Pokémon GO.',
+    category: 'math',
+    difficulty: 'beginner',
+    estimatedDuration: 5,
+    thumbnailUrl: 'https://img.freepik.com/free-vector/hand-drawn-childlike-numbers-collection_23-2149845347.jpg',
+    arMarkerId: 'marker-math',
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-01'),
+  },
+  {
+    id: 'lab-kids-geo',
+    name: 'Planeta Terra & Animais 🌍',
+    description:
+      'Gire o globo terrestre 3D no seu quarto e descubra onde os animais vivem no nosso planeta!',
+    category: 'geography',
+    difficulty: 'beginner',
+    estimatedDuration: 5,
+    thumbnailUrl: 'https://img.freepik.com/free-vector/earth-globe-cartoon-style_1308-124976.jpg',
+    arMarkerId: 'marker-geo',
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-01'),
+  },
+  {
+    id: 'lab-kids-port',
+    name: 'Letra A de Abelha e B de Bola 🔤',
+    description:
+      'Encontre as letras mágicas 3D no ar e conecte cada letra ao objeto correspondente!',
+    category: 'portuguese',
+    difficulty: 'beginner',
+    estimatedDuration: 5,
+    thumbnailUrl: 'https://img.freepik.com/free-vector/alphabet-letter-blocks-cartoon_1308-11234.jpg',
+    arMarkerId: 'marker-port',
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-01'),
+  },
+  {
     id: 'lab-001',
     name: 'Molécula de Água (H₂O)',
     description:
@@ -35,32 +74,6 @@ export const MOCK_LABORATORIES: Laboratory[] = [
     estimatedDuration: 25,
     thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/DNA_replication_split.svg/200px-DNA_replication_split.svg.png',
     arMarkerId: 'marker-dna',
-    createdAt: new Date('2025-01-01'),
-    updatedAt: new Date('2025-01-01'),
-  },
-  {
-    id: 'lab-003',
-    name: 'Circuito RLC em Série',
-    description:
-      'Examine um circuito elétrico com resistor, indutor e capacitor. Observe correntes e tensões em tempo real com RA.',
-    category: 'electronics',
-    difficulty: 'advanced',
-    estimatedDuration: 30,
-    thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/RLC_series_circuit_v1.svg/200px-RLC_series_circuit_v1.svg.png',
-    arMarkerId: 'marker-rlc',
-    createdAt: new Date('2025-01-01'),
-    updatedAt: new Date('2025-01-01'),
-  },
-  {
-    id: 'lab-004',
-    name: 'Cubo Geométrico — Sólidos de Platão',
-    description:
-      'Explore os cinco sólidos platônicos em 3D: tetraedro, cubo, octaedro, dodecaedro e icosaedro. Ideal para geometria espacial.',
-    category: 'physics',
-    difficulty: 'beginner',
-    estimatedDuration: 10,
-    thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Tetrahedron.png/200px-Tetrahedron.png',
-    arMarkerId: 'marker-platonic',
     createdAt: new Date('2025-01-01'),
     updatedAt: new Date('2025-01-01'),
   },
@@ -107,6 +120,39 @@ export const MOCK_LAB_STEPS: Record<string, LaboratoryStep[]> = {
 
 export const MOCK_AR_MODELS: ARModel[] = [
   {
+    id: 'model-math',
+    name: '3 Maçãs Douradas (Matemática Infantil)',
+    type: 'geometry',
+    filePath: 'assets/models/apples_3d.glb',
+    scale: [0.2, 0.2, 0.2],
+    rotation: [0, 0, 0],
+    position: [0, -0.2, -0.5],
+    description: 'Três maçãs 3D flutuantes no mundo real estilo Pokémon GO para aprender a contar!',
+    educationalTags: ['matemática pré-zinho', 'contagem', 'adição fácil'],
+  },
+  {
+    id: 'model-geo',
+    name: 'Globo Terrestre Interativo',
+    type: 'geometry',
+    filePath: 'assets/models/earth_globe.glb',
+    scale: [0.3, 0.3, 0.3],
+    rotation: [0, 15, 0],
+    position: [0, 0, -0.6],
+    description: 'Globo 3D do Planeta Terra girando em tempo real na sua frente!',
+    educationalTags: ['geografia infantil', 'continentes', 'planeta terra'],
+  },
+  {
+    id: 'model-port',
+    name: 'Letra A 3D + Abelha Mágica',
+    type: 'geometry',
+    filePath: 'assets/models/letter_a.glb',
+    scale: [0.25, 0.25, 0.25],
+    rotation: [0, 0, 0],
+    position: [0, 0, -0.5],
+    description: 'Letra A tridimensional amarela com abelhinha animada flutuando ao redor!',
+    educationalTags: ['português pré-zinho', 'alfabeto', 'vogais'],
+  },
+  {
     id: 'model-h2o',
     name: 'Molécula H₂O',
     type: 'molecule',
@@ -115,35 +161,15 @@ export const MOCK_AR_MODELS: ARModel[] = [
     rotation: [0, 0, 0],
     position: [0, 0, -0.5],
     description: 'Modelo 3D da molécula de água com esferas de van der Waals.',
-    educationalTags: ['química', 'ligação covalente', 'polaridade', 'geometria molecular'],
-  },
-  {
-    id: 'model-dna',
-    name: 'DNA Dupla Hélice',
-    type: 'anatomy',
-    filePath: 'assets/models/dna_helix.glb',
-    scale: [0.05, 0.05, 0.05],
-    rotation: [0, 0, 0],
-    position: [0, 0, -0.8],
-    description: 'Estrutura completa do DNA em dupla hélice com nucleotídeos coloridos.',
-    educationalTags: ['biologia', 'genética', 'DNA', 'nucleotídeos'],
-  },
-  {
-    id: 'model-cube',
-    name: 'Cubo — Sólido de Platão',
-    type: 'geometry',
-    filePath: 'assets/models/cube_wireframe.glb',
-    scale: [0.15, 0.15, 0.15],
-    rotation: [45, 45, 0],
-    position: [0, 0, -0.6],
-    description: 'Cubo geométrico perfeito com arestas destacadas para análise espacial.',
-    educationalTags: ['geometria', 'sólidos platônicos', 'matemática', 'volume'],
+    educationalTags: ['química', 'ligação covalente', 'polaridade'],
   },
 ];
 
 // Mapa de marcadores → modelos
 export const MARKER_TO_MODEL_MAP: Record<string, string> = {
+  'marker-math': 'model-math',
+  'marker-geo': 'model-geo',
+  'marker-port': 'model-port',
   'marker-h2o': 'model-h2o',
   'marker-dna': 'model-dna',
-  'marker-platonic': 'model-cube',
 };

@@ -6,6 +6,9 @@
 export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
 
 export type LaboratoryCategory =
+  | 'math'
+  | 'geography'
+  | 'portuguese'
   | 'chemistry'
   | 'physics'
   | 'biology'
