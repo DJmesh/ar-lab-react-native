@@ -28,7 +28,8 @@
       },
       "package": "com.arlabmobile.app",
       "permissions": [
-        "android.permission.CAMERA"
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -43,7 +44,10 @@
       ]
     ],
     "extra": {
-      "arSimulationMode": true
+      "arSimulationMode": true,
+      "eas": {
+        "projectId": "b50b1bfb-3618-4b75-8535-f40927529ad8"
+      }
     }
   }
 }
