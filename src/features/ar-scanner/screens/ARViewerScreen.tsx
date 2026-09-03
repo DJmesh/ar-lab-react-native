@@ -1,11 +1,12 @@
 /**
- * Feature: AR Scanner — ARViewerScreen (Kids AR + Safe Area + Pokémon GO Style Interactive World)
+ * Feature: AR Scanner — ARViewerScreen (Real Hardware Camera + Kids AR + Safe Area + Pokémon GO Style Interactive World)
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  StatusBar, Animated,
+  StatusBar,
 } from 'react-native';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useARScanner } from '../hooks/useARScanner';
@@ -27,6 +28,7 @@ export const ARViewerScreen: React.FC = () => {
   const { labId, labName } = route.params;
   const { theme, isDark }  = useTheme();
 
+  const [permission, requestPermission] = useCameraPermissions();
   const [interactiveScore, setInteractiveScore] = useState(0);
   const [celebrationMsg, setCelebrationMsg]     = useState<string | null>(null);
 
@@ -34,6 +36,12 @@ export const ARViewerScreen: React.FC = () => {
     status, currentModel, scanTipVisible, errorMessage,
     hideScanTip, scanForMarker, retry, clearModel,
   } = useARScanner({ labId, autoScan: true });
+
+  useEffect(() => {
+    if (permission && !permission.granted && permission.canAskAgain) {
+      requestPermission();
+    }
+  }, [permission]);
 
   const isScanning  = status === 'scanning';
   const isLoading   = status === 'initializing' || status === 'model_loading';
@@ -69,52 +77,70 @@ export const ARViewerScreen: React.FC = () => {
     <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      {/* ── Câmera simulada RA (Estilo Pokémon GO) ─────────────── */}
-      <View style={[styles.camera, { backgroundColor: isDark ? '#050810' : '#0F172A' }]}>
-        <Text style={styles.cameraIcon}>📷</Text>
-        
-        {/* Renderização de elementos 3D interativos estilo Pokémon GO no chão/superfície */}
-        {isDetected && (
-          <View style={styles.pokemonGoWorldContainer}>
+      {/* ── CÂMERA REAL DO DISPOSITIVO (Expo CameraView) ─────────────── */}
+      <View style={StyleSheet.absoluteFillObject}>
+        {permission?.granted ? (
+          <CameraView
+            style={StyleSheet.absoluteFillObject}
+            facing="back"
+          />
+        ) : (
+          <View style={[styles.cameraFallback, { backgroundColor: isDark ? '#050810' : '#0F172A' }]}>
+            <Text style={{ fontSize: rs(48), marginBottom: rs(12) }}>📷</Text>
+            <Text style={{ color: '#F9FAFB', fontSize: t.size.base, fontWeight: '700', textAlign: 'center' }}>
+              Permissão de Câmera Necessária
+            </Text>
+            <Text style={{ color: '#9CA3AF', fontSize: t.size.xs, textAlign: 'center', marginVertical: rs(8), paddingHorizontal: rs(24) }}>
+              Para interagir com o mundo 3D em Realidade Aumentada estilo Pokémon GO, libere o acesso à câmera.
+            </Text>
             <TouchableOpacity
-              style={styles.arObject3DBubble}
-              onPress={() => handleTap3DObject(currentModel?.name ?? 'Objeto Educacional')}
-              activeOpacity={0.8}
+              style={[styles.grantBtn, { backgroundColor: c.brand.primary }]}
+              onPress={requestPermission}
             >
-              <Text style={{ fontSize: rs(44) }}>
-                {labId.includes('math') ? '🍎' : labId.includes('geo') ? '🌍' : labId.includes('port') ? '🐝' : '🧪'}
+              <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: t.size.sm }}>
+                Ativar Câmera 📸
               </Text>
-              <View style={styles.arPillBadge}>
-                <Text style={{ color: '#FFFFFF', fontSize: rs(11), fontWeight: '700' }}>
-                  Toque para Interagir! ✨
-                </Text>
-              </View>
             </TouchableOpacity>
-
-            {labId.includes('math') && (
-              <View style={styles.mathFruitsRow}>
-                <TouchableOpacity onPress={() => handleTap3DObject('Maçã 1')}>
-                  <Text style={{ fontSize: rs(36) }}>🍎</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleTap3DObject('Maçã 2')}>
-                  <Text style={{ fontSize: rs(36) }}>🍎</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleTap3DObject('Maçã 3')}>
-                  <Text style={{ fontSize: rs(36) }}>🍎</Text>
-                </TouchableOpacity>
-              </View>
-            )}
           </View>
-        )}
-
-        {(isScanning || isDetected) && (
-          <Text style={[styles.cameraHint, { color: '#9CA3AF' }]}>
-            {isScanning ? 'Varredura de superfície ativa...' : 'Ambiente 3D Projetado no Mundo Real!'}
-          </Text>
         )}
       </View>
 
-      <View style={[styles.overlay, { paddingTop: topPadding }]}>
+      {/* ── ELEMENTOS 3D INTERATIVOS SOBREPOSTOS NA CÂMERA REAL ─────── */}
+      {isDetected && (
+        <View style={styles.pokemonGoWorldOverlay}>
+          <TouchableOpacity
+            style={styles.arObject3DBubble}
+            onPress={() => handleTap3DObject(currentModel?.name ?? 'Objeto Educacional')}
+            activeOpacity={0.8}
+          >
+            <Text style={{ fontSize: rs(54) }}>
+              {labId.includes('math') ? '🍎' : labId.includes('geo') ? '🌍' : labId.includes('port') ? '🐝' : '🧪'}
+            </Text>
+            <View style={styles.arPillBadge}>
+              <Text style={{ color: '#FFFFFF', fontSize: rs(12), fontWeight: '800' }}>
+                Toque no 3D Mágico! ✨
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          {labId.includes('math') && (
+            <View style={styles.mathFruitsRow}>
+              <TouchableOpacity onPress={() => handleTap3DObject('Maçã 1')}>
+                <Text style={{ fontSize: rs(42) }}>🍎</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleTap3DObject('Maçã 2')}>
+                <Text style={{ fontSize: rs(42) }}>🍎</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleTap3DObject('Maçã 3')}>
+                <Text style={{ fontSize: rs(42) }}>🍎</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      )}
+
+      {/* ── OVERLAY DE INTERFACE (Header + Status + Quizzes) ─────────── */}
+      <View style={[styles.overlay, { paddingTop: topPadding }]} pointerEvents="box-none">
         {/* Header Seguro */}
         <View
           style={{
@@ -123,7 +149,7 @@ export const ARViewerScreen: React.FC = () => {
           }}
         >
           <TouchableOpacity
-            style={[styles.circleBtn, { backgroundColor: 'rgba(0,0,0,0.6)' }]}
+            style={[styles.circleBtn, { backgroundColor: 'rgba(0,0,0,0.65)' }]}
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >
@@ -134,7 +160,7 @@ export const ARViewerScreen: React.FC = () => {
             <Text style={{ color: '#F9FAFB', fontSize: t.size.base, fontWeight: '700' }} numberOfLines={1}>
               {labName}
             </Text>
-            <View style={[styles.statusPill, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
+            <View style={[styles.statusPill, { backgroundColor: 'rgba(0,0,0,0.65)' }]}>
               <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
               <Text style={{ color: '#E5E7EB', fontSize: t.size.xs, fontWeight: '600' }}>
                 {statusLabel}
@@ -152,15 +178,15 @@ export const ARViewerScreen: React.FC = () => {
         {/* Mensagem de Celebração Infantil */}
         {celebrationMsg && (
           <View style={[styles.celebrationToast, { backgroundColor: '#10B981' }]}>
-            <Text style={{ color: '#FFFFFF', fontSize: t.size.sm, fontWeight: '700', textAlign: 'center' }}>
+            <Text style={{ color: '#FFFFFF', fontSize: t.size.sm, fontWeight: '800', textAlign: 'center' }}>
               {celebrationMsg}
             </Text>
           </View>
         )}
 
-        {/* Área central */}
+        {/* Área central com ScanFrame */}
         {!hasError && !isLoading && (
-          <View style={styles.scanArea}>
+          <View style={styles.scanArea} pointerEvents="box-none">
             <ScanFrame isScanning={isScanning} isDetected={isDetected} />
             {isScanning && (
               <Text
@@ -168,7 +194,7 @@ export const ARViewerScreen: React.FC = () => {
                   color:             '#F9FAFB',
                   fontSize:          t.size.xs,
                   fontWeight:        '600',
-                  backgroundColor:   'rgba(0,0,0,0.7)',
+                  backgroundColor:   'rgba(0,0,0,0.75)',
                   paddingHorizontal: s.base,
                   paddingVertical:   s.sm,
                   borderRadius:      r.full,
@@ -214,14 +240,18 @@ export const ARViewerScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  root:       { flex: 1, backgroundColor: '#0A0E1A' },
-  camera:     {
-    ...StyleSheet.absoluteFillObject,
-    alignItems:     'center',
+  root:       { flex: 1, backgroundColor: '#000000' },
+  cameraFallback: {
+    flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
   },
-  cameraIcon: { fontSize: rs(72), opacity: 0.10 },
-  cameraHint: { fontSize: rs(12), marginTop: rs(8), fontWeight: '600' },
+  grantBtn: {
+    paddingHorizontal: rs(20),
+    paddingVertical: rs(10),
+    borderRadius: rs(20),
+    marginTop: rs(12),
+  },
   overlay:    { flex: 1 },
   scanArea:   { flex: 1, alignItems: 'center', justifyContent: 'center', gap: rs(16) },
   centered:   { flex: 1, alignItems: 'center', justifyContent: 'center' },
@@ -257,32 +287,39 @@ const styles = StyleSheet.create({
     borderRadius:     rs(12),
     alignItems:       'center',
   },
-  pokemonGoWorldContainer: {
+  pokemonGoWorldOverlay: {
+    ...StyleSheet.absoluteFillObject,
     alignItems:     'center',
     justifyContent: 'center',
-    marginVertical: rs(10),
+    zIndex:         5,
   },
   arObject3DBubble: {
     alignItems:      'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    padding:         rs(16),
-    borderRadius:    rs(24),
-    borderWidth:     2,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    padding:         rs(20),
+    borderRadius:    rs(32),
+    borderWidth:     3,
     borderColor:     '#38BDF8',
+    elevation:       10,
+    shadowColor:     '#38BDF8',
+    shadowRadius:    12,
+    shadowOpacity:   0.8,
   },
   arPillBadge: {
     backgroundColor: '#0EA5E9',
-    paddingHorizontal: rs(10),
-    paddingVertical: rs(4),
-    borderRadius: rs(12),
-    marginTop: rs(6),
+    paddingHorizontal: rs(12),
+    paddingVertical: rs(5),
+    borderRadius: rs(14),
+    marginTop: rs(8),
   },
   mathFruitsRow: {
     flexDirection: 'row',
-    gap: rs(16),
-    marginTop: rs(16),
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: rs(10),
-    borderRadius: rs(16),
+    gap: rs(18),
+    marginTop: rs(24),
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    padding: rs(12),
+    borderRadius: rs(20),
+    borderWidth: 1,
+    borderColor: '#38BDF8',
   },
 });
