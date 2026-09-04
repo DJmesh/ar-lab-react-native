@@ -44,7 +44,7 @@ const CONTINENTS: ContinentInfo[] = [
   { id: 'south_america', name: 'América do Sul', flag: '🇧🇷', mascot: 'Arara Azul 🦜', minDegree: 0,   maxDegree: 60 },
   { id: 'north_america', name: 'América do Norte', flag: '🇺🇸', mascot: 'Urso Pardo 🐻', minDegree: 60,  maxDegree: 135 },
   { id: 'asia_oceania',  name: 'Ásia & Oceania',   flag: '🇨🇳', mascot: 'Urso Panda 🐼', minDegree: 135, maxDegree: 210 },
-  { id: 'africa',        name: 'África',          flag: '🦁', mascot: 'Leão Rei 🦁',    minDegree: 210, maxDegree: 280 },
+  { id: 'africa',        name: 'África',          flag: '🇿🇦', mascot: 'Leão 🦁',        minDegree: 210, maxDegree: 280 },
   { id: 'europe',        name: 'Europa',          flag: '🇪🇺', mascot: 'Águia Real 🦅',  minDegree: 280, maxDegree: 360 },
 ];
 
