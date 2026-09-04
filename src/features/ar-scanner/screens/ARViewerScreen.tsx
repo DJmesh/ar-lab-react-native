@@ -1,10 +1,11 @@
 /**
- * Feature: AR Scanner — ARViewerScreen (Real Hardware Camera + Kids AR + Safe Area + Pokémon GO Style Interactive World)
+ * Feature: AR Scanner — ARViewerScreen
+ * @description Câmera Real + RA Mista Interativa + Jogo Pedagógico de Organização (Maçãs Vermelhas vs Verdes).
  */
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  StatusBar,
+  StatusBar, Animated,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,6 +22,15 @@ import type { RootStackParamList } from '../../../navigation/types';
 
 type ARViewerRoute = RouteProp<RootStackParamList, 'ARViewer'>;
 
+interface AppleItem {
+  id: string;
+  type: 'red' | 'green';
+  label: string;
+  xPct: number; // Posição % na tela
+  yPct: number;
+  organized: boolean;
+}
+
 export const ARViewerScreen: React.FC = () => {
   const navigation = useNavigation();
   const route      = useRoute<ARViewerRoute>();
@@ -32,9 +42,24 @@ export const ARViewerScreen: React.FC = () => {
   const [interactiveScore, setInteractiveScore] = useState(0);
   const [celebrationMsg, setCelebrationMsg]     = useState<string | null>(null);
 
+  // 🍎 Jogo de Organização de Maçãs (Matemática Pré-Escola)
+  const isMathGame = labId.includes('math');
+  const [selectedAppleId, setSelectedAppleId] = useState<string | null>(null);
+  const [apples, setApples] = useState<AppleItem[]>([
+    { id: 'app-1', type: 'red',   label: 'Maçã Vermelha 1', xPct: 22, yPct: 35, organized: false },
+    { id: 'app-2', type: 'green', label: 'Maçã Verde 1',    xPct: 68, yPct: 28, organized: false },
+    { id: 'app-3', type: 'red',   label: 'Maçã Vermelha 2', xPct: 45, yPct: 48, organized: false },
+    { id: 'app-4', type: 'green', label: 'Maçã Verde 2',    xPct: 18, yPct: 58, organized: false },
+    { id: 'app-5', type: 'red',   label: 'Maçã Vermelha 3', xPct: 75, yPct: 62, organized: false },
+    { id: 'app-6', type: 'green', label: 'Maçã Verde 3',    xPct: 50, yPct: 20, organized: false },
+  ]);
+
+  const [basketRedCount, setBasketRedCount]     = useState(0);
+  const [basketGreenCount, setBasketGreenCount] = useState(0);
+
   const {
     status, currentModel, scanTipVisible, errorMessage,
-    hideScanTip, scanForMarker, retry, clearModel,
+    hideScanTip, retry, clearModel,
   } = useARScanner({ labId, autoScan: true });
 
   useEffect(() => {
@@ -55,11 +80,47 @@ export const ARViewerScreen: React.FC = () => {
 
   const topPadding = Math.max(insets.top + rs(6), rs(36));
 
-  const handleTap3DObject = (objectName: string) => {
-    setInteractiveScore((prev) => prev + 1);
-    setCelebrationMsg(`⭐ Muito bem! Você tocou no 3D: ${objectName}! 🎉`);
-    setTimeout(() => setCelebrationMsg(null), 3000);
+  // Lógica de Organização do Jogo Infantil
+  const handleSelectApple = (apple: AppleItem) => {
+    if (apple.organized) return;
+    setSelectedAppleId(apple.id);
+    setCelebrationMsg(`🍎 Você selecionou a ${apple.label}! Agora toque na cesta correta abaixo!`);
   };
+
+  const handlePlaceInBasket = (targetBasket: 'red' | 'green') => {
+    if (!selectedAppleId) {
+      setCelebrationMsg(`👉 Toque em uma maçã no chão antes de escolher a cesta!`);
+      return;
+    }
+
+    const currentApple = apples.find((a) => a.id === selectedAppleId);
+    if (!currentApple) return;
+
+    if (currentApple.type === targetBasket) {
+      // ✅ Acerto!
+      setApples((prev) =>
+        prev.map((a) => (a.id === selectedAppleId ? { ...a, organized: true } : a)),
+      );
+      if (targetBasket === 'red') setBasketRedCount((v) => v + 1);
+      else setBasketGreenCount((v) => v + 1);
+
+      setInteractiveScore((prev) => prev + 10);
+      setCelebrationMsg(
+        `⭐ PARABÉNS! ${currentApple.type === 'red' ? 'Maçã Vermelha 🍎' : 'Maçã Verde 🍏'} guardada na cesta certa!`,
+      );
+      setSelectedAppleId(null);
+    } else {
+      // ❌ Erro Amigável Pedagógico
+      setCelebrationMsg(
+        `Ops! A ${currentApple.label} deve ir para a cesta de cor ${
+          currentApple.type === 'red' ? 'VERMELHA 🔴' : 'VERDE 🟢'
+        }! Tente de novo!`,
+      );
+    }
+  };
+
+  const remainingApples = apples.filter((a) => !a.organized).length;
+  const totalOrganized = apples.length - remainingApples;
 
   const statusColor = isDetected
     ? c.semantic.success
@@ -77,21 +138,15 @@ export const ARViewerScreen: React.FC = () => {
     <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      {/* ── CÂMERA REAL DO DISPOSITIVO (Expo CameraView) ─────────────── */}
+      {/* ── CÂMERA REAL DO DISPOSITIVO ──────────────────────────────── */}
       <View style={StyleSheet.absoluteFillObject}>
         {permission?.granted ? (
-          <CameraView
-            style={StyleSheet.absoluteFillObject}
-            facing="back"
-          />
+          <CameraView style={StyleSheet.absoluteFillObject} facing="back" />
         ) : (
           <View style={[styles.cameraFallback, { backgroundColor: isDark ? '#050810' : '#0F172A' }]}>
             <Text style={{ fontSize: rs(48), marginBottom: rs(12) }}>📷</Text>
             <Text style={{ color: '#F9FAFB', fontSize: t.size.base, fontWeight: '700', textAlign: 'center' }}>
               Permissão de Câmera Necessária
-            </Text>
-            <Text style={{ color: '#9CA3AF', fontSize: t.size.xs, textAlign: 'center', marginVertical: rs(8), paddingHorizontal: rs(24) }}>
-              Para interagir com o mundo 3D em Realidade Aumentada estilo Pokémon GO, libere o acesso à câmera.
             </Text>
             <TouchableOpacity
               style={[styles.grantBtn, { backgroundColor: c.brand.primary }]}
@@ -105,49 +160,102 @@ export const ARViewerScreen: React.FC = () => {
         )}
       </View>
 
-      {/* ── ELEMENTOS 3D INTERATIVOS SOBREPOSTOS NA CÂMERA REAL ─────── */}
+      {/* ── ELEMENTOS 3D DO JOGO DE ORGANIZAÇÃO NO ESPAÇO REAL ──────── */}
       {isDetected && (
-        <View style={styles.pokemonGoWorldOverlay}>
-          <TouchableOpacity
-            style={styles.arObject3DBubble}
-            onPress={() => handleTap3DObject(currentModel?.name ?? 'Objeto Educacional')}
-            activeOpacity={0.8}
-          >
-            <Text style={{ fontSize: rs(54) }}>
-              {labId.includes('math') ? '🍎' : labId.includes('geo') ? '🌍' : labId.includes('port') ? '🐝' : '🧪'}
-            </Text>
-            <View style={styles.arPillBadge}>
-              <Text style={{ color: '#FFFFFF', fontSize: rs(12), fontWeight: '800' }}>
-                Toque no 3D Mágico! ✨
-              </Text>
-            </View>
-          </TouchableOpacity>
+        <View style={styles.pokemonGoWorldOverlay} pointerEvents="box-none">
+          {isMathGame ? (
+            /* JOGO MATEMÁTICO: MAÇÃS ESPALHADAS NO AMBIENTE REAL */
+            apples.map((apple) => {
+              if (apple.organized) return null;
+              const isSelected = selectedAppleId === apple.id;
 
-          {labId.includes('math') && (
-            <View style={styles.mathFruitsRow}>
-              <TouchableOpacity onPress={() => handleTap3DObject('Maçã 1')}>
-                <Text style={{ fontSize: rs(42) }}>🍎</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleTap3DObject('Maçã 2')}>
-                <Text style={{ fontSize: rs(42) }}>🍎</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleTap3DObject('Maçã 3')}>
-                <Text style={{ fontSize: rs(42) }}>🍎</Text>
-              </TouchableOpacity>
-            </View>
+              return (
+                <TouchableOpacity
+                  key={apple.id}
+                  style={[
+                    styles.arApple3DBubble,
+                    {
+                      left: `${apple.xPct}%`,
+                      top: `${apple.yPct}%`,
+                      borderColor: isSelected ? '#FACC15' : apple.type === 'red' ? '#EF4444' : '#22C55E',
+                      transform: [{ scale: isSelected ? 1.25 : 1.0 }],
+                    },
+                  ]}
+                  onPress={() => handleSelectApple(apple)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={{ fontSize: rs(48) }}>
+                    {apple.type === 'red' ? '🍎' : '🍏'}
+                  </Text>
+                  {isSelected && (
+                    <View style={styles.selectedIndicatorPill}>
+                      <Text style={{ color: '#000', fontSize: rs(9), fontWeight: '900' }}>SELECIONADA ✨</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })
+          ) : (
+            /* OUTROS LABORATÓRIOS (GEOGRAFIA / PORTUGUÊS) */
+            <TouchableOpacity
+              style={styles.arObject3DBubble}
+              onPress={() => {
+                setInteractiveScore((prev) => prev + 5);
+                setCelebrationMsg(`⭐ Muito bem! Você tocou no 3D! 🎉`);
+                setTimeout(() => setCelebrationMsg(null), 3000);
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={{ fontSize: rs(58) }}>
+                {labId.includes('geo') ? '🌍' : labId.includes('port') ? '🐝' : '🧪'}
+              </Text>
+              <View style={styles.arPillBadge}>
+                <Text style={{ color: '#FFFFFF', fontSize: rs(12), fontWeight: '800' }}>
+                  Toque no 3D Mágico! ✨
+                </Text>
+              </View>
+            </TouchableOpacity>
           )}
         </View>
       )}
 
-      {/* ── OVERLAY DE INTERFACE (Header + Status + Quizzes) ─────────── */}
+      {/* ── CESTAS DE ORGANIZAÇÃO NO RODAPÉ (JOGO DE MATEMÁTICA) ────── */}
+      {isMathGame && isDetected && (
+        <View style={styles.basketsContainer} pointerEvents="box-none">
+          {/* Cesta Vermelha */}
+          <TouchableOpacity
+            style={[
+              styles.basketCard,
+              { borderColor: '#EF4444', backgroundColor: 'rgba(239, 68, 68, 0.25)' },
+            ]}
+            onPress={() => handlePlaceInBasket('red')}
+            activeOpacity={0.85}
+          >
+            <Text style={{ fontSize: rs(36) }}>🧺 🍎</Text>
+            <Text style={styles.basketTitle}>Cesta Vermelha</Text>
+            <Text style={styles.basketCounter}>{basketRedCount} Maçãs</Text>
+          </TouchableOpacity>
+
+          {/* Cesta Verde */}
+          <TouchableOpacity
+            style={[
+              styles.basketCard,
+              { borderColor: '#22C55E', backgroundColor: 'rgba(34, 197, 94, 0.25)' },
+            ]}
+            onPress={() => handlePlaceInBasket('green')}
+            activeOpacity={0.85}
+          >
+            <Text style={{ fontSize: rs(36) }}>🧺 🍏</Text>
+            <Text style={styles.basketTitle}>Cesta Verde</Text>
+            <Text style={styles.basketCounter}>{basketGreenCount} Maçãs</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* ── OVERLAY DE INTERFACE DE CONTROLE (Header + Banner) ────────── */}
       <View style={[styles.overlay, { paddingTop: topPadding }]} pointerEvents="box-none">
         {/* Header Seguro */}
-        <View
-          style={{
-            flexDirection: 'row', alignItems: 'center',
-            paddingHorizontal: s.base, gap: s.sm,
-          }}
-        >
+        <View style={styles.headerRow}>
           <TouchableOpacity
             style={[styles.circleBtn, { backgroundColor: 'rgba(0,0,0,0.65)' }]}
             onPress={() => navigation.goBack()}
@@ -170,48 +278,46 @@ export const ARViewerScreen: React.FC = () => {
 
           <View style={[styles.scoreBadge, { backgroundColor: c.brand.primary }]}>
             <Text style={{ color: c.text.onBrand, fontSize: t.size.xs, fontWeight: '800' }}>
-              ⭐ {interactiveScore}
+              ⭐ {interactiveScore} PTS
             </Text>
           </View>
         </View>
 
+        {/* Banner do Jogo de Organização */}
+        {isMathGame && isDetected && (
+          <View style={styles.gameInstructionBanner}>
+            <Text style={styles.bannerTitle}>
+              🎯 Jogo do Senso de Organização ({totalOrganized}/{apples.length})
+            </Text>
+            <Text style={styles.bannerSub}>
+              {remainingApples > 0
+                ? 'Toque numa maçã no chão e guarde-a na cesta da mesma cor!'
+                : '🏆 PARABÉNS! VOCÊ ORGANIZOU TODAS AS MAÇÃS COM SUCESSO! 🎉'}
+            </Text>
+          </View>
+        )}
+
         {/* Mensagem de Celebração Infantil */}
         {celebrationMsg && (
           <View style={[styles.celebrationToast, { backgroundColor: '#10B981' }]}>
-            <Text style={{ color: '#FFFFFF', fontSize: t.size.sm, fontWeight: '800', textAlign: 'center' }}>
+            <Text style={{ color: '#FFFFFF', fontSize: t.size.xs, fontWeight: '800', textAlign: 'center' }}>
               {celebrationMsg}
             </Text>
           </View>
         )}
 
-        {/* Área central com ScanFrame */}
-        {!hasError && !isLoading && (
+        {/* Área central com ScanFrame se estiver escaneando */}
+        {!hasError && !isLoading && !isDetected && (
           <View style={styles.scanArea} pointerEvents="box-none">
             <ScanFrame isScanning={isScanning} isDetected={isDetected} />
-            {isScanning && (
-              <Text
-                style={{
-                  color:             '#F9FAFB',
-                  fontSize:          t.size.xs,
-                  fontWeight:        '600',
-                  backgroundColor:   'rgba(0,0,0,0.75)',
-                  paddingHorizontal: s.base,
-                  paddingVertical:   s.sm,
-                  borderRadius:      r.full,
-                  overflow:          'hidden',
-                }}
-              >
-                Aponte a câmera para o chão ou mesa para visualizar
-              </Text>
-            )}
           </View>
         )}
 
         {isLoading && (
           <View style={styles.centered}>
             <LoadingOverlay
-              message={status === 'initializing' ? 'Inicializando câmera de RA...' : 'Carregando mundo 3D...'}
-              subMessage="Preparando aprendizado interativo"
+              message="Inicializando ambiente 3D..."
+              subMessage="Preparando aprendizado lúdico"
               variant="ar"
             />
           </View>
@@ -219,15 +325,15 @@ export const ARViewerScreen: React.FC = () => {
 
         {hasError && (
           <ErrorState
-            title={status === 'camera_permission_denied' ? 'Câmera sem permissão' : 'Câmera indisponível'}
+            title="Câmera indisponível"
             message={errorMessage ?? 'Não foi possível inicializar a câmera.'}
-            icon={status === 'camera_permission_denied' ? '🔒' : '📷'}
+            icon="📷"
             actionLabel="Tentar novamente"
             onAction={retry}
           />
         )}
 
-        {currentModel && isDetected && (
+        {currentModel && isDetected && !isMathGame && (
           <ModelInfoCard model={currentModel} onDismiss={clearModel} />
         )}
       </View>
@@ -253,6 +359,10 @@ const styles = StyleSheet.create({
     marginTop: rs(12),
   },
   overlay:    { flex: 1 },
+  headerRow:  {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: rs(16), gap: rs(12),
+  },
   scanArea:   { flex: 1, alignItems: 'center', justifyContent: 'center', gap: rs(16) },
   centered:   { flex: 1, alignItems: 'center', justifyContent: 'center' },
   circleBtn:  {
@@ -281,19 +391,61 @@ const styles = StyleSheet.create({
     borderRadius: rs(4),
   },
   celebrationToast: {
-    marginHorizontal: rs(20),
-    marginTop:        rs(12),
+    marginHorizontal: rs(16),
+    marginTop:        rs(8),
     padding:          rs(10),
     borderRadius:     rs(12),
     alignItems:       'center',
   },
+  gameInstructionBanner: {
+    backgroundColor: 'rgba(15, 23, 42, 0.88)',
+    marginHorizontal: rs(16),
+    marginTop: rs(10),
+    padding: rs(12),
+    borderRadius: rs(16),
+    borderWidth: 1,
+    borderColor: '#38BDF8',
+    alignItems: 'center',
+  },
+  bannerTitle: {
+    color: '#FACC15',
+    fontSize: rs(13),
+    fontWeight: '800',
+  },
+  bannerSub: {
+    color: '#F9FAFB',
+    fontSize: rs(11),
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: rs(2),
+  },
   pokemonGoWorldOverlay: {
     ...StyleSheet.absoluteFillObject,
-    alignItems:     'center',
+    zIndex: 5,
+  },
+  arApple3DBubble: {
+    position: 'absolute',
+    alignItems: 'center',
     justifyContent: 'center',
-    zIndex:         5,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    padding: rs(12),
+    borderRadius: rs(28),
+    borderWidth: 3,
+    shadowColor: '#000000',
+    shadowRadius: 10,
+    shadowOpacity: 0.5,
+    elevation: 8,
+  },
+  selectedIndicatorPill: {
+    backgroundColor: '#FACC15',
+    paddingHorizontal: rs(6),
+    paddingVertical: rs(2),
+    borderRadius: rs(8),
+    marginTop: rs(4),
   },
   arObject3DBubble: {
+    alignSelf: 'center',
+    marginTop: '40%',
     alignItems:      'center',
     backgroundColor: 'rgba(255,255,255,0.25)',
     padding:         rs(20),
@@ -301,9 +453,6 @@ const styles = StyleSheet.create({
     borderWidth:     3,
     borderColor:     '#38BDF8',
     elevation:       10,
-    shadowColor:     '#38BDF8',
-    shadowRadius:    12,
-    shadowOpacity:   0.8,
   },
   arPillBadge: {
     backgroundColor: '#0EA5E9',
@@ -312,14 +461,35 @@ const styles = StyleSheet.create({
     borderRadius: rs(14),
     marginTop: rs(8),
   },
-  mathFruitsRow: {
+  basketsContainer: {
+    position: 'absolute',
+    bottom: rs(30),
+    left: rs(16),
+    right: rs(16),
     flexDirection: 'row',
-    gap: rs(18),
-    marginTop: rs(24),
-    backgroundColor: 'rgba(0,0,0,0.65)',
-    padding: rs(12),
+    justifyContent: 'space-between',
+    gap: rs(16),
+    zIndex: 10,
+  },
+  basketCard: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: rs(12),
+    paddingHorizontal: rs(8),
     borderRadius: rs(20),
-    borderWidth: 1,
-    borderColor: '#38BDF8',
+    borderWidth: 2.5,
+    elevation: 6,
+  },
+  basketTitle: {
+    color: '#F9FAFB',
+    fontSize: rs(12),
+    fontWeight: '800',
+    marginTop: rs(4),
+  },
+  basketCounter: {
+    color: '#E2E8F0',
+    fontSize: rs(10),
+    fontWeight: '700',
+    marginTop: rs(2),
   },
 });
