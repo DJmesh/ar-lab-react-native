@@ -58,42 +58,30 @@ export const useARScanner = ({ labId, autoScan = true }: UseARScannerOptions) =>
     }
 
     initSession(labId);
-    setStatus('scanning');
-  }, [labId, setStatus, setErrorMessage, initSession]);
+    setStatus('model_loading');
 
-  // ─── Varredura de marcador ─────────────────────────────
-
-  const scanForMarker = useCallback(async () => {
-    if (status !== 'scanning') return;
-
-    const lab = MOCK_LABORATORIES.find((l) => l.id === labId);
-    const availableMarkers = lab?.arMarkerId ? [lab.arMarkerId] : [];
-
-    const { markerId, confidence } = await cameraService.simulateMarkerDetection(availableMarkers);
-
-    if (!isMounted.current) return;
-
-    const result = {
-      markerId,
-      confidence,
-      timestamp: new Date(),
+    // Mapeamento direto de labId para markerId do modelo 3D
+    const labMarkerMap: Record<string, string> = {
+      'lab-math-1': 'marker-math',
+      'lab-geo-1': 'marker-geo',
+      'lab-port-1': 'marker-port',
+      'lab-chem-1': 'marker-h2o',
     };
-    addScanResult(result);
 
-    if (markerId) {
-      setStatus('model_loading');
-      try {
-        const model = await resolveARModelUseCase.execute(markerId);
-        if (isMounted.current) {
-          setModel(model);
-        }
-      } catch (err) {
-        if (isMounted.current) {
-          setErrorMessage('Erro ao carregar o modelo 3D. Tente novamente.');
-        }
+    const targetMarkerId = labMarkerMap[labId] || 'marker-math';
+
+    try {
+      const model = await resolveARModelUseCase.execute(targetMarkerId);
+      if (isMounted.current) {
+        setModel(model);
+        setStatus('model_ready');
+      }
+    } catch (err) {
+      if (isMounted.current) {
+        setStatus('model_ready');
       }
     }
-  }, [status, labId, addScanResult, setStatus, setModel, setErrorMessage]);
+  }, [labId, setStatus, setErrorMessage, setModel, initSession]);
 
   // ─── Retry / Reset ─────────────────────────────────────
 
@@ -117,19 +105,12 @@ export const useARScanner = ({ labId, autoScan = true }: UseARScannerOptions) =>
     };
   }, []);  // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    if (autoScan && status === 'scanning') {
-      scanForMarker();
-    }
-  }, [autoScan, status, scanForMarker]);
-
   return {
     status,
     currentModel,
     scanTipVisible,
     errorMessage,
     hideScanTip,
-    scanForMarker,
     retry,
     clearModel,
   };

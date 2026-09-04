@@ -48,10 +48,9 @@ export const ARViewerScreen: React.FC = () => {
     }
   }, [permission]);
 
-  const isScanning = status === 'scanning';
-  const isLoading = status === 'initializing' || status === 'model_loading';
-  const isDetected = status === 'model_ready' || status === 'marker_detected';
   const hasError = ['error', 'camera_permission_denied', 'camera_unavailable'].includes(status);
+  const isLoading = status === 'initializing';
+  const isDetected = !hasError && !isLoading;
 
   const c = theme.colors;
   const t = theme.typography;
@@ -66,17 +65,8 @@ export const ARViewerScreen: React.FC = () => {
     setTimeout(() => setCelebrationMsg(null), 4000);
   };
 
-  const statusColor = isDetected
-    ? c.semantic.success
-    : isScanning
-    ? c.brand.accent
-    : c.semantic.warning;
-
-  const statusLabel = isDetected
-    ? 'Ambiente 3D Ativo'
-    : isScanning
-    ? 'Procurando Chão/Mesa'
-    : 'Aguardando Câmera';
+  const statusColor = c.semantic.success;
+  const statusLabel = 'Ambiente 3D Ativo';
 
   return (
     <View style={styles.root}>
@@ -144,11 +134,7 @@ export const ARViewerScreen: React.FC = () => {
           </View>
         )}
 
-        {!hasError && !isLoading && !isDetected && (
-          <View style={styles.scanArea} pointerEvents="box-none">
-            <ScanFrame isScanning={isScanning} isDetected={isDetected} />
-          </View>
-        )}
+
 
         {isLoading && (
           <View style={styles.centered}>
