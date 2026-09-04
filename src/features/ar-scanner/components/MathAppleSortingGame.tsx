@@ -1,9 +1,10 @@
 /**
  * Component: MathAppleSortingGame
- * @description Módulo de Matemática Infantil — Jogo pedagógico de organização (Maçãs Vermelhas vs Verdes).
+ * @description Módulo de Matemática Infantil — Jogo pedagógico de organização (Maçãs Vermelhas vs Verdes) com motor 3D gestual.
  */
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Interactive3DViewport } from './Interactive3DViewport';
 import { rs } from '../../../shared/utils/responsive';
 
 export interface AppleItem {
@@ -26,12 +27,12 @@ export const MathAppleSortingGame: React.FC<MathAppleSortingGameProps> = ({
 }) => {
   const [selectedAppleId, setSelectedAppleId] = useState<string | null>(null);
   const [apples, setApples] = useState<AppleItem[]>([
-    { id: 'app-1', type: 'red',   label: 'Maçã Vermelha 1', xPct: 22, yPct: 35, organized: false },
-    { id: 'app-2', type: 'green', label: 'Maçã Verde 1',    xPct: 68, yPct: 28, organized: false },
-    { id: 'app-3', type: 'red',   label: 'Maçã Vermelha 2', xPct: 45, yPct: 48, organized: false },
-    { id: 'app-4', type: 'green', label: 'Maçã Verde 2',    xPct: 18, yPct: 58, organized: false },
-    { id: 'app-5', type: 'red',   label: 'Maçã Vermelha 3', xPct: 75, yPct: 62, organized: false },
-    { id: 'app-6', type: 'green', label: 'Maçã Verde 3',    xPct: 50, yPct: 20, organized: false },
+    { id: 'app-1', type: 'red',   label: 'Maçã Vermelha 1', xPct: 20, yPct: 32, organized: false },
+    { id: 'app-2', type: 'green', label: 'Maçã Verde 1',    xPct: 65, yPct: 26, organized: false },
+    { id: 'app-3', type: 'red',   label: 'Maçã Vermelha 2', xPct: 42, yPct: 46, organized: false },
+    { id: 'app-4', type: 'green', label: 'Maçã Verde 2',    xPct: 15, yPct: 56, organized: false },
+    { id: 'app-5', type: 'red',   label: 'Maçã Vermelha 3', xPct: 72, yPct: 60, organized: false },
+    { id: 'app-6', type: 'green', label: 'Maçã Verde 3',    xPct: 48, yPct: 18, organized: false },
   ]);
 
   const [basketRedCount, setBasketRedCount]     = useState(0);
@@ -86,47 +87,47 @@ export const MathAppleSortingGame: React.FC<MathAppleSortingGameProps> = ({
           </Text>
           <Text style={styles.bannerSub}>
             {remainingApples > 0
-              ? 'Toque numa maçã no chão e guarde-a na cesta da mesma cor!'
+              ? 'Toque numa maçã 3D no chão e guarde-a na cesta da mesma cor!'
               : '🏆 PARABÉNS! VOCÊ ORGANIZOU TODAS AS MAÇÃS COM SUCESSO! 🎉'}
           </Text>
         </View>
       </View>
 
-      {/* Maçãs 3D no Espaço Real */}
+      {/* Maçãs 3D com Iluminação Specular e Sombra de Piso Real */}
       <View style={styles.pokemonGoWorldOverlay} pointerEvents="box-none">
         {apples.map((apple) => {
           if (apple.organized) return null;
           const isSelected = selectedAppleId === apple.id;
 
           return (
-            <TouchableOpacity
+            <View
               key={apple.id}
               style={[
-                styles.arApple3DBubble,
+                styles.arApplePositionWrapper,
                 {
                   left: `${apple.xPct}%`,
                   top: `${apple.yPct}%`,
-                  borderColor: isSelected ? '#FACC15' : apple.type === 'red' ? '#EF4444' : '#22C55E',
-                  transform: [{ scale: isSelected ? 1.25 : 1.0 }],
                 },
               ]}
-              onPress={() => handleSelectApple(apple)}
-              activeOpacity={0.8}
             >
-              <Text style={{ fontSize: rs(48) }}>
-                {apple.type === 'red' ? '🍎' : '🍏'}
-              </Text>
-              {isSelected && (
-                <View style={styles.selectedIndicatorPill}>
-                  <Text style={{ color: '#000', fontSize: rs(9), fontWeight: '900' }}>SELECIONADA ✨</Text>
-                </View>
-              )}
-            </TouchableOpacity>
+              <Interactive3DViewport
+                type={apple.type === 'red' ? 'apple_red' : 'apple_green'}
+                initialScale={isSelected ? 1.4 : 1.0}
+                onTap={() => handleSelectApple(apple)}
+                badgeContent={
+                  isSelected ? (
+                    <View style={styles.selectedIndicatorPill}>
+                      <Text style={{ color: '#000', fontSize: rs(9), fontWeight: '900' }}>SELECIONADA ✨</Text>
+                    </View>
+                  ) : undefined
+                }
+              />
+            </View>
           );
         })}
       </View>
 
-      {/* Cestas no Rodapé */}
+      {/* Cestas de Separação no Rodapé */}
       <View style={styles.basketsContainer} pointerEvents="box-none">
         <TouchableOpacity
           style={[styles.basketCard, { borderColor: '#EF4444', backgroundColor: 'rgba(239, 68, 68, 0.25)' }]}
@@ -183,25 +184,18 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     zIndex: 5,
   },
-  arApple3DBubble: {
+  arApplePositionWrapper: {
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.22)',
-    padding: rs(12),
-    borderRadius: rs(28),
-    borderWidth: 3,
-    shadowColor: '#000000',
-    shadowRadius: 10,
-    shadowOpacity: 0.5,
-    elevation: 8,
   },
   selectedIndicatorPill: {
     backgroundColor: '#FACC15',
-    paddingHorizontal: rs(6),
-    paddingVertical: rs(2),
+    paddingHorizontal: rs(8),
+    paddingVertical: rs(3),
     borderRadius: rs(8),
-    marginTop: rs(4),
+    marginTop: rs(2),
+    elevation: 4,
   },
   basketsContainer: {
     position: 'absolute',

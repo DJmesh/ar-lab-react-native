@@ -1,9 +1,13 @@
 /**
  * Component: GeographyGlobeGame
- * @description Módulo de Geografia Infantil — Gincana de caça aos continentes via Rotação Y 3D.
+ * @description Módulo de Geografia Infantil — Gincana dos Continentes com Globo 3D Imersivo:
+ * - Rotação fluida 360° em X/Y por arrasto gestual na tela
+ * - Zoom por gesto de pinça com 2 dedos (Pinch-to-Scale)
+ * - Iluminação 3D + Sombra de contato no plano da câmera
  */
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Interactive3DViewport } from './Interactive3DViewport';
 import { rs } from '../../../shared/utils/responsive';
 
 export interface ContinentInfo {
@@ -33,7 +37,7 @@ export const GeographyGlobeGame: React.FC<GeographyGlobeGameProps> = ({
   onShowMessage,
 }) => {
   const [globeRotationY, setGlobeRotationY] = useState(0);
-  const [targetContinentIdx, setTargetContinentIdx] = useState(3); // África
+  const [targetContinentIdx, setTargetContinentIdx] = useState(3); // Começa com África
 
   const getCurrentContinent = (deg: number): ContinentInfo => {
     const normalizedDeg = ((deg % 360) + 360) % 360;
@@ -47,8 +51,8 @@ export const GeographyGlobeGame: React.FC<GeographyGlobeGameProps> = ({
   const currentVisibleContinent = getCurrentContinent(globeRotationY);
   const targetContinent = CONTINENTS[targetContinentIdx];
 
-  const handleRotateGlobe = (deltaDegrees: number) => {
-    setGlobeRotationY((prev) => (prev + deltaDegrees + 360) % 360);
+  const handleRotationChange = (newRotYDeg: number) => {
+    setGlobeRotationY(newRotYDeg);
   };
 
   const handleCheckGeoChallenge = () => {
@@ -67,64 +71,47 @@ export const GeographyGlobeGame: React.FC<GeographyGlobeGameProps> = ({
 
   return (
     <View style={StyleSheet.absoluteFillObject} pointerEvents="box-none">
-      {/* Globo 3D Terrestre no Centro */}
+      {/* Motor 3D Imersivo do Globo com Gestos de Arrasto e Pinça */}
       <View style={styles.geoGlobeContainer}>
-        <TouchableOpacity
-          style={[
-            styles.arGlobeBubble,
-            { transform: [{ rotate: `${globeRotationY}deg` }] },
-          ]}
-          onPress={() => handleRotateGlobe(45)}
-          activeOpacity={0.9}
-        >
-          <Text style={{ fontSize: rs(96) }}>🌍</Text>
-        </TouchableOpacity>
-
-        <View style={styles.continentDetectorBadge}>
-          <Text style={{ fontSize: rs(20) }}>{currentVisibleContinent.flag}</Text>
-          <View>
-            <Text style={{ color: '#F9FAFB', fontSize: rs(12), fontWeight: '800' }}>
-              {currentVisibleContinent.name}
-            </Text>
-            <Text style={{ color: '#38BDF8', fontSize: rs(10), fontWeight: '700' }}>
-              {currentVisibleContinent.mascot}
-            </Text>
-          </View>
-        </View>
+        <Interactive3DViewport
+          type="globe"
+          initialScale={1.35} // Abre de forma grande e imersiva na tela do celular
+          onRotationChange={handleRotationChange}
+          badgeContent={
+            <View style={styles.continentDetectorBadge}>
+              <Text style={{ fontSize: rs(22) }}>{currentVisibleContinent.flag}</Text>
+              <View>
+                <Text style={{ color: '#F9FAFB', fontSize: rs(13), fontWeight: '800' }}>
+                  {currentVisibleContinent.name}
+                </Text>
+                <Text style={{ color: '#38BDF8', fontSize: rs(11), fontWeight: '700' }}>
+                  {currentVisibleContinent.mascot}
+                </Text>
+              </View>
+            </View>
+          }
+        />
       </View>
 
-      {/* Painel da Gincana no Rodapé */}
+      {/* Painel de Controle da Gincana no Rodapé */}
       <View style={styles.geoControlsContainer} pointerEvents="box-none">
         <View style={styles.geoChallengeBox}>
           <Text style={styles.geoChallengeTitle}>
             🎯 Missão Gincana: Encontre a {targetContinent.name} {targetContinent.flag}!
           </Text>
           <Text style={styles.geoChallengeSub}>
-            Gire o Globo Terrestre e alinhe a {targetContinent.name} com o mascote {targetContinent.mascot}
+            Deslize o dedo no Globo 3D para girar em 360° ou use o gesto de pinça para ajustar o tamanho!
           </Text>
 
-          <View style={styles.geoButtonsRow}>
-            <TouchableOpacity
-              style={styles.rotateBtn}
-              onPress={() => handleRotateGlobe(-45)}
-            >
-              <Text style={styles.rotateBtnText}>↺ Girar -45°</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.confirmGeoBtn}
-              onPress={handleCheckGeoChallenge}
-            >
-              <Text style={styles.confirmGeoBtnText}>📍 Confirmar Continente!</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.rotateBtn}
-              onPress={() => handleRotateGlobe(45)}
-            >
-              <Text style={styles.rotateBtnText}>↻ Girar +45°</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.confirmGeoBtn}
+            onPress={handleCheckGeoChallenge}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.confirmGeoBtnText}>
+              📍 Confirmar Continente Alinhado!
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -133,30 +120,22 @@ export const GeographyGlobeGame: React.FC<GeographyGlobeGameProps> = ({
 
 const styles = StyleSheet.create({
   geoGlobeContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: '30%',
-  },
-  arGlobeBubble: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(56, 189, 248, 0.2)',
-    padding: rs(16),
-    borderRadius: rs(80),
-    borderWidth: 3,
-    borderColor: '#38BDF8',
+    marginTop: '15%',
   },
   continentDetectorBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: rs(10),
-    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+    backgroundColor: 'rgba(15, 23, 42, 0.92)',
     paddingHorizontal: rs(16),
     paddingVertical: rs(8),
     borderRadius: rs(20),
     borderWidth: 1.5,
     borderColor: '#38BDF8',
-    marginTop: rs(16),
+    elevation: 8,
   },
   geoControlsContainer: {
     position: 'absolute',
@@ -167,7 +146,7 @@ const styles = StyleSheet.create({
   },
   geoChallengeBox: {
     backgroundColor: 'rgba(15, 23, 42, 0.92)',
-    padding: rs(14),
+    padding: rs(16),
     borderRadius: rs(20),
     borderWidth: 1.5,
     borderColor: '#FACC15',
@@ -175,44 +154,28 @@ const styles = StyleSheet.create({
   },
   geoChallengeTitle: {
     color: '#FACC15',
-    fontSize: rs(13),
+    fontSize: rs(14),
     fontWeight: '800',
     textAlign: 'center',
   },
   geoChallengeSub: {
     color: '#94A3B8',
-    fontSize: rs(10),
-    textAlign: 'center',
-    marginTop: rs(2),
-    marginBottom: rs(10),
-  },
-  geoButtonsRow: {
-    flexDirection: 'row',
-    gap: rs(8),
-    alignItems: 'center',
-    width: '100%',
-  },
-  rotateBtn: {
-    backgroundColor: '#334155',
-    paddingHorizontal: rs(12),
-    paddingVertical: rs(8),
-    borderRadius: rs(12),
-  },
-  rotateBtnText: {
-    color: '#F9FAFB',
     fontSize: rs(11),
-    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: rs(4),
+    marginBottom: rs(12),
   },
   confirmGeoBtn: {
-    flex: 1,
+    width: '100%',
     backgroundColor: '#0284C7',
-    paddingVertical: rs(8),
-    borderRadius: rs(12),
+    paddingVertical: rs(12),
+    borderRadius: rs(14),
     alignItems: 'center',
+    elevation: 4,
   },
   confirmGeoBtnText: {
     color: '#FFFFFF',
-    fontSize: rs(11),
+    fontSize: rs(13),
     fontWeight: '800',
   },
 });
