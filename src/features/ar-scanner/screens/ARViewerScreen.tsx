@@ -1,11 +1,11 @@
 /**
  * Feature: AR Scanner — ARViewerScreen
- * @description Câmera Real + RA Mista Interativa + Jogo Pedagógico de Organização (Maçãs Vermelhas vs Verdes).
+ * @description Câmera Real + RA Mista Interativa + Jogo de Matemática + Gincana de Geografia por Rotação Y 3D.
  */
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  StatusBar, Animated,
+  StatusBar,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,10 +26,27 @@ interface AppleItem {
   id: string;
   type: 'red' | 'green';
   label: string;
-  xPct: number; // Posição % na tela
+  xPct: number;
   yPct: number;
   organized: boolean;
 }
+
+interface ContinentInfo {
+  id: string;
+  name: string;
+  flag: string;
+  mascot: string;
+  minDegree: number;
+  maxDegree: number;
+}
+
+const CONTINENTS: ContinentInfo[] = [
+  { id: 'south_america', name: 'América do Sul', flag: '🇧🇷', mascot: 'Arara Azul 🦜', minDegree: 0,   maxDegree: 60 },
+  { id: 'north_america', name: 'América do Norte', flag: '🇺🇸', mascot: 'Urso Pardo 🐻', minDegree: 60,  maxDegree: 135 },
+  { id: 'asia_oceania',  name: 'Ásia & Oceania',   flag: '🇨🇳', mascot: 'Urso Panda 🐼', minDegree: 135, maxDegree: 210 },
+  { id: 'africa',        name: 'África',          flag: '🦁', mascot: 'Leão Rei 🦁',    minDegree: 210, maxDegree: 280 },
+  { id: 'europe',        name: 'Europa',          flag: '🇪🇺', mascot: 'Águia Real 🦅',  minDegree: 280, maxDegree: 360 },
+];
 
 export const ARViewerScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -57,6 +74,11 @@ export const ARViewerScreen: React.FC = () => {
   const [basketRedCount, setBasketRedCount]     = useState(0);
   const [basketGreenCount, setBasketGreenCount] = useState(0);
 
+  // 🌍 Gincana do Globo Terrestre (Geografia Infantil por Rotação 3D)
+  const isGeoGame = labId.includes('geo');
+  const [globeRotationY, setGlobeRotationY] = useState(0); // 0 a 360 graus
+  const [targetContinentIdx, setTargetContinentIdx] = useState(3); // Começa pedindo a África
+
   const {
     status, currentModel, scanTipVisible, errorMessage,
     hideScanTip, retry, clearModel,
@@ -80,7 +102,43 @@ export const ARViewerScreen: React.FC = () => {
 
   const topPadding = Math.max(insets.top + rs(6), rs(36));
 
-  // Lógica de Organização do Jogo Infantil
+  // Lógica de cálculo de continente atual baseado no ângulo Y de rotação
+  const getCurrentContinent = (deg: number): ContinentInfo => {
+    const normalizedDeg = ((deg % 360) + 360) % 360;
+    return (
+      CONTINENTS.find(
+        (cont) => normalizedDeg >= cont.minDegree && normalizedDeg < cont.maxDegree,
+      ) ?? CONTINENTS[0]
+    );
+  };
+
+  const currentVisibleContinent = getCurrentContinent(globeRotationY);
+  const targetContinent = CONTINENTS[targetContinentIdx];
+
+  // Girar o Globo Terrestre em +45° ou -45°
+  const handleRotateGlobe = (deltaDegrees: number) => {
+    setGlobeRotationY((prev) => (prev + deltaDegrees + 360) % 360);
+  };
+
+  // Validar Desafio da Gincana Geográfica
+  const handleCheckGeoChallenge = () => {
+    if (currentVisibleContinent.id === targetContinent.id) {
+      // ✅ Acertou o continente na gincana!
+      setInteractiveScore((prev) => prev + 15);
+      setCelebrationMsg(
+        `🏆 FANTÁSTICO! Você alinhou a ${targetContinent.name} ${targetContinent.flag} e encontrou o ${targetContinent.mascot}! 🎉`,
+      );
+      // Avança para o próximo continente
+      setTargetContinentIdx((prev) => (prev + 1) % CONTINENTS.length);
+    } else {
+      // ❌ Alinhou continente diferente
+      setCelebrationMsg(
+        `📍 Você está vendo a ${currentVisibleContinent.name} ${currentVisibleContinent.flag}! Continue girando para achar a ${targetContinent.name}!`,
+      );
+    }
+  };
+
+  // Lógica de Organização do Jogo Infantil de Matemática
   const handleSelectApple = (apple: AppleItem) => {
     if (apple.organized) return;
     setSelectedAppleId(apple.id);
@@ -97,7 +155,6 @@ export const ARViewerScreen: React.FC = () => {
     if (!currentApple) return;
 
     if (currentApple.type === targetBasket) {
-      // ✅ Acerto!
       setApples((prev) =>
         prev.map((a) => (a.id === selectedAppleId ? { ...a, organized: true } : a)),
       );
@@ -110,7 +167,6 @@ export const ARViewerScreen: React.FC = () => {
       );
       setSelectedAppleId(null);
     } else {
-      // ❌ Erro Amigável Pedagógico
       setCelebrationMsg(
         `Ops! A ${currentApple.label} deve ir para a cesta de cor ${
           currentApple.type === 'red' ? 'VERMELHA 🔴' : 'VERDE 🟢'
@@ -160,7 +216,7 @@ export const ARViewerScreen: React.FC = () => {
         )}
       </View>
 
-      {/* ── ELEMENTOS 3D DO JOGO DE ORGANIZAÇÃO NO ESPAÇO REAL ──────── */}
+      {/* ── ELEMENTOS 3D DOS JOGOS (MATEMÁTICA / GEOGRAFIA) ──────────── */}
       {isDetected && (
         <View style={styles.pokemonGoWorldOverlay} pointerEvents="box-none">
           {isMathGame ? (
@@ -195,8 +251,35 @@ export const ARViewerScreen: React.FC = () => {
                 </TouchableOpacity>
               );
             })
+          ) : isGeoGame ? (
+            /* GINCANA DE GEOGRAFIA: GLOBO TERRESTRE COM ROTAÇÃO Y 3D */
+            <View style={styles.geoGlobeContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.arGlobeBubble,
+                  { transform: [{ rotate: `${globeRotationY}deg` }] },
+                ]}
+                onPress={() => handleRotateGlobe(45)}
+                activeOpacity={0.9}
+              >
+                <Text style={{ fontSize: rs(96) }}>🌍</Text>
+              </TouchableOpacity>
+
+              {/* Tag com o Continente em Destaque pela Rotação Y */}
+              <View style={styles.continentDetectorBadge}>
+                <Text style={{ fontSize: rs(20) }}>{currentVisibleContinent.flag}</Text>
+                <View>
+                  <Text style={{ color: '#F9FAFB', fontSize: rs(12), fontWeight: '800' }}>
+                    {currentVisibleContinent.name}
+                  </Text>
+                  <Text style={{ color: '#38BDF8', fontSize: rs(10), fontWeight: '700' }}>
+                    {currentVisibleContinent.mascot}
+                  </Text>
+                </View>
+              </View>
+            </View>
           ) : (
-            /* OUTROS LABORATÓRIOS (GEOGRAFIA / PORTUGUÊS) */
+            /* OUTROS LABORATÓRIOS (PORTUGUÊS / QUÍMICA) */
             <TouchableOpacity
               style={styles.arObject3DBubble}
               onPress={() => {
@@ -207,7 +290,7 @@ export const ARViewerScreen: React.FC = () => {
               activeOpacity={0.8}
             >
               <Text style={{ fontSize: rs(58) }}>
-                {labId.includes('geo') ? '🌍' : labId.includes('port') ? '🐝' : '🧪'}
+                {labId.includes('port') ? '🐝' : '🧪'}
               </Text>
               <View style={styles.arPillBadge}>
                 <Text style={{ color: '#FFFFFF', fontSize: rs(12), fontWeight: '800' }}>
@@ -219,10 +302,46 @@ export const ARViewerScreen: React.FC = () => {
         </View>
       )}
 
-      {/* ── CESTAS DE ORGANIZAÇÃO NO RODAPÉ (JOGO DE MATEMÁTICA) ────── */}
+      {/* ── PAINEL DE ROTAÇÃO E GINCANA (GEOGRAFIA) ────────────────── */}
+      {isGeoGame && isDetected && (
+        <View style={styles.geoControlsContainer} pointerEvents="box-none">
+          <View style={styles.geoChallengeBox}>
+            <Text style={styles.geoChallengeTitle}>
+              🎯 Missão Gincana: Encontre a {targetContinent.name} {targetContinent.flag}!
+            </Text>
+            <Text style={styles.geoChallengeSub}>
+              Gire o Globo Terrestre e alinhe a {targetContinent.name} com o mascote {targetContinent.mascot}
+            </Text>
+
+            <View style={styles.geoButtonsRow}>
+              <TouchableOpacity
+                style={styles.rotateBtn}
+                onPress={() => handleRotateGlobe(-45)}
+              >
+                <Text style={styles.rotateBtnText}>↺ Girar -45°</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.confirmGeoBtn}
+                onPress={handleCheckGeoChallenge}
+              >
+                <Text style={styles.confirmGeoBtnText}>📍 Confirmar Continente!</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.rotateBtn}
+                onPress={() => handleRotateGlobe(45)}
+              >
+                <Text style={styles.rotateBtnText}>↻ Girar +45°</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* ── CESTAS DE ORGANIZAÇÃO NO RODAPÉ (MATEMÁTICA) ──────────── */}
       {isMathGame && isDetected && (
         <View style={styles.basketsContainer} pointerEvents="box-none">
-          {/* Cesta Vermelha */}
           <TouchableOpacity
             style={[
               styles.basketCard,
@@ -236,7 +355,6 @@ export const ARViewerScreen: React.FC = () => {
             <Text style={styles.basketCounter}>{basketRedCount} Maçãs</Text>
           </TouchableOpacity>
 
-          {/* Cesta Verde */}
           <TouchableOpacity
             style={[
               styles.basketCard,
@@ -252,7 +370,7 @@ export const ARViewerScreen: React.FC = () => {
         </View>
       )}
 
-      {/* ── OVERLAY DE INTERFACE DE CONTROLE (Header + Banner) ────────── */}
+      {/* ── OVERLAY DE INTERFACE DE CONTROLE ───────────────────────── */}
       <View style={[styles.overlay, { paddingTop: topPadding }]} pointerEvents="box-none">
         {/* Header Seguro */}
         <View style={styles.headerRow}>
@@ -283,7 +401,7 @@ export const ARViewerScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Banner do Jogo de Organização */}
+        {/* Banner do Jogo de Organização (Matemática) */}
         {isMathGame && isDetected && (
           <View style={styles.gameInstructionBanner}>
             <Text style={styles.bannerTitle}>
@@ -306,7 +424,6 @@ export const ARViewerScreen: React.FC = () => {
           </View>
         )}
 
-        {/* Área central com ScanFrame se estiver escaneando */}
         {!hasError && !isLoading && !isDetected && (
           <View style={styles.scanArea} pointerEvents="box-none">
             <ScanFrame isScanning={isScanning} isDetected={isDetected} />
@@ -333,7 +450,7 @@ export const ARViewerScreen: React.FC = () => {
           />
         )}
 
-        {currentModel && isDetected && !isMathGame && (
+        {currentModel && isDetected && !isMathGame && !isGeoGame && (
           <ModelInfoCard model={currentModel} onDismiss={clearModel} />
         )}
       </View>
@@ -442,6 +559,89 @@ const styles = StyleSheet.create({
     paddingVertical: rs(2),
     borderRadius: rs(8),
     marginTop: rs(4),
+  },
+  geoGlobeContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: '30%',
+  },
+  arGlobeBubble: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(56, 189, 248, 0.2)',
+    padding: rs(16),
+    borderRadius: rs(80),
+    borderWidth: 3,
+    borderColor: '#38BDF8',
+  },
+  continentDetectorBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: rs(10),
+    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+    paddingHorizontal: rs(16),
+    paddingVertical: rs(8),
+    borderRadius: rs(20),
+    borderWidth: 1.5,
+    borderColor: '#38BDF8',
+    marginTop: rs(16),
+  },
+  geoControlsContainer: {
+    position: 'absolute',
+    bottom: rs(30),
+    left: rs(16),
+    right: rs(16),
+    zIndex: 10,
+  },
+  geoChallengeBox: {
+    backgroundColor: 'rgba(15, 23, 42, 0.92)',
+    padding: rs(14),
+    borderRadius: rs(20),
+    borderWidth: 1.5,
+    borderColor: '#FACC15',
+    alignItems: 'center',
+  },
+  geoChallengeTitle: {
+    color: '#FACC15',
+    fontSize: rs(13),
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+  geoChallengeSub: {
+    color: '#94A3B8',
+    fontSize: rs(10),
+    textAlign: 'center',
+    marginTop: rs(2),
+    marginBottom: rs(10),
+  },
+  geoButtonsRow: {
+    flexDirection: 'row',
+    gap: rs(8),
+    alignItems: 'center',
+    width: '100%',
+  },
+  rotateBtn: {
+    backgroundColor: '#334155',
+    paddingHorizontal: rs(12),
+    paddingVertical: rs(8),
+    borderRadius: rs(12),
+  },
+  rotateBtnText: {
+    color: '#F9FAFB',
+    fontSize: rs(11),
+    fontWeight: '700',
+  },
+  confirmGeoBtn: {
+    flex: 1,
+    backgroundColor: '#0284C7',
+    paddingVertical: rs(8),
+    borderRadius: rs(12),
+    alignItems: 'center',
+  },
+  confirmGeoBtnText: {
+    color: '#FFFFFF',
+    fontSize: rs(11),
+    fontWeight: '800',
   },
   arObject3DBubble: {
     alignSelf: 'center',
